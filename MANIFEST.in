@@ -1,1 +1,7 @@
 include regToolboxMSRC/GUI/MSRC_toolbox_v0_3.ui
+include regToolboxMSRC/parameter_files/affine.txt
+include regToolboxMSRC/parameter_files/fi_correction.txt
+include regToolboxMSRC/parameter_files/nl.txt
+include regToolboxMSRC/parameter_files/rigid.txt
+include regToolboxMSRC/parameter_files/scaled_rigid.txt
+include regToolboxMSRC/parameter_files/testing.txt
