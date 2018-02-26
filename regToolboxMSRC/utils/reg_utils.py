@@ -226,7 +226,7 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     :return type: SimpleITK parameter map and SimpleITK image
     
     '''
-    selx = sitk.SimpleElastix()
+    selx = sitk.ElastixImageFilter()
     
     if logging == True:
         selx.LogToConsoleOn()
@@ -276,7 +276,7 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     selx.LogToFileOn()
     #execute registration:
     if return_image == True:
-        transformimage = selx.Execute()
+        transformed_image = selx.Execute()
     else:
         selx.Execute()
     
@@ -348,7 +348,7 @@ def check_im_size_fiji(image):
     return impixels > 10**9
 
 def transform_image(moving, transformationMap):
-    transformix = sitk.SimpleTransformix()
+    transformix = sitk.TransformixImageFilter()
     transformix.SetMovingImage(moving)
     transformix.SetTransformParameterMap(transformationMap)
     transformix.LogToConsoleOff()
