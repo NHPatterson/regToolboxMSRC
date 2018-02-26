@@ -57,7 +57,8 @@
 (AutomaticScalesEstimation "true")
 
 
-
+
+
 // Automatically guess an initial translation by aligning the
 // geometric centers of the fixed and moving.
 (AutomaticTransformInitialization "true")
@@ -114,7 +115,8 @@
 // (eg histology) it is necessary to increase this value a bit, to the size
 // of the "smallest visible structure" in the image:
 //(MaximumStepLength 100.0 100.0 50.0 30.0 15.0 15.0 10.0 10.0 1.0 1.0)
-
+
+
 
 // **************** Image sampling **********************
 
