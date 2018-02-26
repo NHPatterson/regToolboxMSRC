@@ -242,7 +242,10 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     if moving_mask == None :
         pass
     else:
-        mask_moving = sitk.ReadImage(moving_mask)
+        if isinstance(moving_mask, type(sitk.Image())) == True:
+            mask_moving = moving_mask
+        else:
+            mask_fixed = sitk.ReadImage(fixed_mask)
 #        if bounding_box == True:
 #            moving_x,moving_y,moving_w,moving_h = get_mask_bb(moving_mask)
 #            mask_moving = mask_moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
@@ -254,7 +257,11 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     if fixed_mask == None :
         pass
     else:
-        mask_fixed = sitk.ReadImage(fixed_mask)
+        if isinstance(fixed_mask, type(sitk.Image())) == True:
+            mask_fixed = fixed_mask
+        else:
+            mask_fixed = sitk.ReadImage(fixed_mask)
+        
         fixed_shape_original = mask_fixed.GetSize()
         if bounding_box == True:
             fixed_x,fixed_y,fixed_w,fixed_h = get_mask_bb(fixed_mask)
@@ -268,7 +275,7 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    selx.SetOutputDirectory(os.getcwd() + "\\" + output_dir)
+    selx.SetOutputDirectory(os.getcwd() + "/" + output_dir)
     
     selx.SetFixedImage(fixed)
     selx.SetMovingImage(moving)

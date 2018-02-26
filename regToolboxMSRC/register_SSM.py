@@ -123,6 +123,7 @@ def register_SSM(source_fp, source_res, target1_fp, target1_res , target2_fp, ta
     
     return
 
+sitk.ReadImage('/home/nhp/testing_data/test_image0_mask.mha')
 if __name__ == '__main__':
     import yaml
     import sys 
