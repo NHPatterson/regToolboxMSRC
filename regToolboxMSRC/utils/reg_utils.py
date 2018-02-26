@@ -14,6 +14,7 @@ import time
 import datetime
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
+import pkg_resources
 
 class reg_image(object):
     '''
@@ -168,12 +169,15 @@ class parameter_files(object):
         Class to load SimpleITK parameters from file
     '''
     def __init__(self):
-        self.testing = sitk.ReadParameterFile('D:/R_Registration_toolbox/parameters/mukid_params/HE_to_BF/testing.txt')
-        self.rigid = sitk.ReadParameterFile('D:/R_Registration_toolbox/parameters/mukid_params/HE_to_BF/20170919_Parameters_euler_HE_BF.txt')
-        self.scaled_rigid = sitk.ReadParameterFile('D:/R_Registration_toolbox/parameters/mukid_params/HE_to_BF/20170919_Parameters_scaled_rigid.txt')
-        self.affine = sitk.ReadParameterFile('D:/R_Registration_toolbox/parameters/mukid_params/20170614_Parameters_affine_autofluo.txt')
-        self.nl = sitk.ReadParameterFile('D:/R_Registration_toolbox/parameters/mukid_params/20170614_Parameters_nl_autofluo_10x_mag.txt')
-        self.correction = sitk.ReadParameterFile('C:/Users/pattenh1/Dropbox/selx_parameter_files/20171213_FI_correction.txt')
+        resource_package = 'regToolboxMSRC'  
+    
+        pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'testing.txt')))
+        self.testing = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'testing.txt'))))
+        self.rigid = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'rigid.txt'))))
+        self.scaled_rigid = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'scaled_rigid.txt'))))
+        self.affine = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'affine.txt'))))
+        self.nl = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'nl.txt'))))
+        self.correction = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'fi_correction.txt'))))
             
 def get_mask_bb(mask_fp):
     '''
