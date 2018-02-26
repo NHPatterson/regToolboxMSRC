@@ -171,13 +171,12 @@ class parameter_files(object):
     def __init__(self):
         resource_package = 'regToolboxMSRC'  
     
-        pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'testing.txt')))
-        self.testing = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'testing.txt'))))
-        self.rigid = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'rigid.txt'))))
-        self.scaled_rigid = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'scaled_rigid.txt'))))
-        self.affine = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'affine.txt'))))
-        self.nl = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'nl.txt'))))
-        self.correction = sitk.ReadParameterFile(pkg_resources.resource_stream(resource_package, '/'.join(('parameter_files', 'fi_correction.txt'))))
+        self.testing = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'testing.txt'))))
+        self.rigid = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'rigid.txt'))))
+        self.scaled_rigid = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'scaled_rigid.txt'))))
+        self.affine = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'affine.txt'))))
+        self.nl = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'nl.txt'))))
+        self.correction = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'fi_correction.txt'))))
             
 def get_mask_bb(mask_fp):
     '''
