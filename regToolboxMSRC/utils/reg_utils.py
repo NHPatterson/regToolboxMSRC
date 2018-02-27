@@ -177,6 +177,7 @@ class parameter_files(object):
         self.affine = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'affine.txt'))))
         self.nl = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'nl.txt'))))
         self.correction = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'fi_correction.txt'))))
+        self.affine_test = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'affine_test.txt'))))
             
 def get_mask_bb(mask_fp):
     '''
@@ -244,23 +245,32 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     else:
         if isinstance(moving_mask, type(sitk.Image())) == True:
             mask_moving = moving_mask
+            mask_moving.SetSpacing(moving.GetSpacing())
+            selx.SetMovingMask(mask_moving)
+
         else:
             mask_fixed = sitk.ReadImage(fixed_mask)
-#        if bounding_box == True:
-#            moving_x,moving_y,moving_w,moving_h = get_mask_bb(moving_mask)
-#            mask_moving = mask_moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
-#            moving = moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
-
-        mask_moving.SetSpacing(moving.GetSpacing())
-        selx.SetMovingMask(mask_moving)
+            mask_moving.SetSpacing(moving.GetSpacing())
+            selx.SetMovingMask(mask_moving)
+            
+        
+        if bounding_box == True:
+            moving_x,moving_y,moving_w,moving_h = get_mask_bb(moving_mask)
+            mask_moving = mask_moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
+            moving = moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
         
     if fixed_mask == None :
         pass
     else:
         if isinstance(fixed_mask, type(sitk.Image())) == True:
             mask_fixed = fixed_mask
+            mask_moving.SetSpacing(moving.GetSpacing())
+            selx.SetMovingMask(mask_moving)
+            
         else:
             mask_fixed = sitk.ReadImage(fixed_mask)
+            mask_fixed.SetSpacing(fixed.GetSpacing())
+            selx.SetMovingMask(mask_fixed)
         
         fixed_shape_original = mask_fixed.GetSize()
         if bounding_box == True:
@@ -268,14 +278,14 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
             mask_fixed = mask_fixed[fixed_x:fixed_x+fixed_w,fixed_y:fixed_y+fixed_h]
             fixed = fixed[fixed_x:fixed_x+fixed_w,fixed_y:fixed_y+fixed_h]
             
-        mask_fixed.SetSpacing(fixed.GetSpacing())
-        selx.SetFixedMask(mask_fixed)
+        #mask_fixed.SetSpacing(fixed.GetSpacing())
+        #selx.SetFixedMask(mask_fixed)
 
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    selx.SetOutputDirectory(os.getcwd() + "/" + output_dir)
+    selx.SetOutputDirectory(os.path.join(os.getcwd(), output_dir))
     
     selx.SetFixedImage(fixed)
     selx.SetMovingImage(moving)
@@ -287,7 +297,7 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     else:
         selx.Execute()
     
-    os.rename(os.getcwd()+ "\\" + output_dir + "\\TransformParameters.0.txt", os.getcwd()+ "\\" + output_dir + "\\" + output_fn)
+    os.rename(os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'), os.path.join(os.getcwd(), output_dir, output_fn +'.txt'))
     
     transformationMap = selx.GetTransformParameterMap()
     
@@ -457,7 +467,26 @@ def prepare_output(wd, project_name, xml_params):
     #output parameters to XML file
     #output parameters to XML file
     write_param_xml(xml_params, opdir, ts, project_name)
-    
+
+
+def reg_image_preprocess(image_fp, img_res, img_type = 'RGB_l'):
+    if img_type in ['RGB_l','AF']:    
+        if img_type == "RGB_l":
+            out_image = reg_image(image_fp, 'sitk', img_res)
+            out_image.to_greyscale()
+            out_image.invert_intensity()
+            
+        else:
+            out_image = reg_image(image_fp, 'sitk', img_res)
+            if out_image.image.GetDepth() > 1:
+                out_image.compress_AF_channels('max')
+            if out_image.image.GetNumberOfComponentsPerPixel() == 3:
+                out_image.to_greyscale()
+    else:
+        print(img_type + ' is an invalid image type (valid: RGB_l & AF)')
+
+    return out_image
+
 def register_SSM(source_fp, source_res, target1_fp, target1_res , target2_fp, target2_res, source_mask_fp, target1_mask_fp, target2_mask_fp, wd, source_img_type, target_img_type1,target_img_type2, reg_model1, reg_model2, project_name, xml_params, intermediate_output = False, bounding_box = False):
 
 

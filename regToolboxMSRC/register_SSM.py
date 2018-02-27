@@ -8,61 +8,56 @@ Created on Mon Feb 26 10:11:21 2018
 import os
 import time
 import datetime
-from regToolboxMSRC.utils.reg_utils import parameter_files, register_elx_, transform_mc_image_sitk, reg_image, paste_to_original_dim, check_im_size_fiji
+from regToolboxMSRC.utils.reg_utils import parameter_files, register_elx_, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess
 import SimpleITK as sitk
 
-def register_SSM(source_fp, source_res, target1_fp, target1_res , target2_fp, target2_res, source_mask_fp, target1_mask_fp, target2_mask_fp, wd, source_img_type, target_img_type1,target_img_type2, reg_model1, reg_model2, project_name, intermediate_output = False, bounding_box = False):
+#def check_config(config_file):
 
+def register_SSM(source_fp, source_res, 
+                 target1_fp, target1_res , 
+                 target2_fp, target2_res, 
+                 source_mask_fp, target1_mask_fp, target2_mask_fp, 
+                 wd, 
+                 source_img_type, target1_img_type, target2_img_type, 
+                 reg_model1, reg_model2, 
+                 project_name, 
+                 intermediate_output = False, bounding_box = False):
+
+    
     ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
     os.chdir(wd)
-    os.makedirs(ts + project_name + "_images")
-    opdir = ts + project_name + "_images\\"
+    os.makedirs(os.path.join(os.getcwd(),ts+ project_name+"_images"))
+    opdir = ts + project_name + "_images"
+    
     
     #load registration parameters based on input
-    if reg_model1 == "Rigid":
-        reg_param1 = parameter_files().rigid    
-    elif reg_model1 == "Affine":
-        reg_param1 = parameter_files().affine   
-        
-    if reg_model2 == "Rigid":
-        reg_param2 = parameter_files().rigid    
-    elif reg_model2 == "Affine":
-        reg_param2 = parameter_files().affine
-    
-    #load images for registration:
-    
-    if source_img_type == "HE":
-        source = reg_image(source_fp,'sitk', source_res)
-        source.to_greyscale()
-        source.invert_intensity()
-        
+    if reg_model1 in ['affine' ,'affine_test' ,'fi_correction' ,'nl' ,'rigid' ,'scaled_rigid', 'testing']:
+        reg_param1 = getattr(parameter_files(), reg_model1)
     else:
-        source = reg_image(source_fp,'sitk', source_res)
-        if source.image.GetDepth() > 1:
-            source.compress_AF_channels('max')
+        try:
+            reg_param1 = sitk.ReadParameterFile(reg_model1)
+        except:
+            print('reg_model2: invalid parameter file in .yaml config')
+    
+    
+    if reg_model2 in ['affine' ,'affine_test' ,'fi_correction' ,'nl' ,'rigid' ,'scaled_rigid', 'testing']:
+        reg_param2 = getattr(parameter_files(), reg_model2)
+    else:
+        try:
+            reg_param2 = sitk.ReadParameterFile(reg_model2)
+        except:
+            print('reg_model2: invalid parameter file in .yaml config')
+
+    #load images for registration:    
+    source = reg_image_preprocess(source_fp, source_res, img_type = source_img_type)
     
     print("source image loaded")
         
-    if target_img_type1 == "HE":
-        target1 = reg_image(target1_fp,'sitk', target1_res)
-        target1.to_greyscale()
-        target1.invert_intensity()
-        
-    else:
-        target1 = reg_image(target1_fp,'sitk', target1_res)
-        if target1.image.GetDepth() > 1:
-            target1.compress_AF_channels('max')
-
+    target1 = reg_image_preprocess(target1_fp, target1_res, img_type = target1_img_type)
 
     print("target 1 image loaded")
 
-    
-    
-    #register
-
-    
-    #img_output_dir = os.getcwd() + "\\" + ts + project_name + "_tforms" +"\\"
-
+    #registration
     
     src_tgt1_tform = register_elx_(source.image, target1.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target1_mask_fp, output_dir= ts + project_name + "_tforms_src_tgt1", output_fn = ts + project_name +"_"+reg_model1+"_src_tgt1.txt", logging = True)
     
@@ -71,22 +66,14 @@ def register_SSM(source_fp, source_res, target1_fp, target1_res , target2_fp, ta
 
     if intermediate_output == True:
         tformed_im = transform_mc_image_sitk(source_fp, src_tgt1_tform, source_res)
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt1.tif", True)
-
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(),opdir + project_name + "_src_tgt1.tif"), True)
 
     del source
     
-    if target_img_type2 == "HE":
-        target2 = reg_image(target2_fp,'sitk', target2_res)
-        target2.to_greyscale()
-        target2.invert_intensity()
-        
-    else:
-        target2 = reg_image(target2_fp,'sitk', target2_res)
-        if target2.image.GetDepth() > 1:
-            target2.compress_AF_channels('max')
+    target2 = reg_image_preprocess(target2_fp, target2_res, img_type = target2_img_type)
 
     print("target 2 image loaded")
+    
     ##get target 2 image metaData in case of bounding box masking:
     final_size_2D = target2.image.GetSize()
     
@@ -120,10 +107,8 @@ def register_SSM(source_fp, source_res, target1_fp, target1_res , target2_fp, ta
     else:
         sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt2.tif", True)
 
-    
     return
 
-sitk.ReadImage('/home/nhp/testing_data/test_image0_mask.mha')
 if __name__ == '__main__':
     import yaml
     import sys 
