@@ -59,7 +59,7 @@ def register_SSM(source_fp, source_res,
 
     #registration
     
-    src_tgt1_tform = register_elx_(source.image, target1.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target1_mask_fp, output_dir= ts + project_name + "_tforms_src_tgt1", output_fn = ts + project_name +"_"+reg_model1+"_src_tgt1.txt", logging = True)
+    src_tgt1_tform = register_elx_(source.image, target1.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target1_mask_fp, output_dir= ts + project_name + "_tforms_src_tgt1", output_fn = ts + project_name +"_init_src_tgt1.txt", return_image = False,logging = True, bounding_box=False)
     
     #transform result and save output
     os.chdir(wd)
@@ -75,13 +75,7 @@ def register_SSM(source_fp, source_res,
     print("target 2 image loaded")
     
     ##get target 2 image metaData in case of bounding box masking:
-    final_size_2D = target2.image.GetSize()
-    
-    if bounding_box == True and os.path.exists(target2_mask_fp):
-        tgt1_tgt2_tform,fixed_x, fixed_y, fixed_w, fixed_h, fixed_shape_original = register_elx_(target1.image, target2.image, reg_param2, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= ts + project_name + "_tforms_tgt1_tgt2", output_fn = ts + project_name +"_"+reg_model1+"_tgt1_tgt2.txt", logging = True, bounding_box = True)
-    
-    else:
-        tgt1_tgt2_tform = register_elx_(target1.image, target2.image, reg_param2, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= ts + project_name + "_tforms_tgt1_tgt2", output_fn = ts + project_name +"_"+reg_model1+"_tgt1_tgt2.txt", logging = True, bounding_box = False)
+    tgt1_tgt2_tform = register_elx_(target1.image, target2.image, reg_param2, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= ts + project_name + "_tforms_tgt1_tgt2", output_fn = ts + project_name +"init_tgt1_tgt2.txt", return_image = False ,logging = True, bounding_box = False)
     
     
     #transform result and save output

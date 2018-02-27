@@ -5,4 +5,3 @@ include regToolboxMSRC/parameter_files/nl.txt
 include regToolboxMSRC/parameter_files/rigid.txt
 include regToolboxMSRC/parameter_files/scaled_rigid.txt
 include regToolboxMSRC/parameter_files/testing.txt
-include regToolboxMSRC/parameter_files/affine_test.txt

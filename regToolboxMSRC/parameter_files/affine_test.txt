@@ -44,10 +44,10 @@
 // quite ok in general. The Transform and Metric are important
 // and need to be chosen careful for each application. See manual.
 (Optimizer "AdaptiveStochasticGradientDescent")
-(Metric "AdvancedMattesMutualInformation")
+//(Metric "AdvancedMattesMutualInformation")
 (Transform "AffineTransform")
-//(Metric "AdvancedMeanSquares")
-//(UseNormalization "true")
+(Metric "AdvancedMeanSquares")
+(UseNormalization "true")
 
 // ***************** Transformation **************************
 
@@ -61,7 +61,7 @@
 
 // Automatically guess an initial translation by aligning the
 // geometric centers of the fixed and moving.
-(AutomaticTransformInitialization "true")
+(AutomaticTransformInitialization "false")
 
 
 // Whether transforms are combined by composition or by addition.
@@ -88,7 +88,7 @@
 // The number of resolutions. 1 Is only enough if the expected
 // deformations are small. 3 or 4 mostly works fine. For large
 // images and large deformations, 5 or 6 may even be useful.
-(NumberOfResolutions 2)
+(NumberOfResolutions 1)
 
 // The downsampling/blurring factors for the image pyramids.
 // By default, the images are downsampled by a factor of 2
@@ -114,7 +114,7 @@
 // which usually works well. In case of unusual high-resolution images
 // (eg histology) it is necessary to increase this value a bit, to the size
 // of the "smallest visible structure" in the image:
-(MaximumStepLength 100.0 100.0 50.0 30.0 15.0 15.0 10.0 10.0 1.0 1.0)
+//(MaximumStepLength 100.0 100.0 50.0 30.0 15.0 15.0 10.0 10.0 1.0 1.0)
 
 
 
@@ -125,7 +125,7 @@
 // With an AdaptiveStochasticGradientDescent optimizer,
 // in combination with the two options below, around 2000
 // samples may already suffice.
-(NumberOfSpatialSamples 500)
+(NumberOfSpatialSamples 1000)
 
 // Refresh these spatial samples in every iteration, and select
 // them randomly. See the manual for information on other sampling

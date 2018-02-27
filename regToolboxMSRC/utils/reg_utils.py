@@ -191,7 +191,7 @@ def get_mask_bb(mask_fp):
     x,y,w,h = cv2.boundingRect(cnt[0])
     return x,y,w,h
 
-def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, output_dir= "transformations", output_fn = "myreg.txt", return_image = True, logging = True, bounding_box = True):
+def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, output_dir= "transformations", output_fn = "myreg.txt", return_image = False, logging = True, bounding_box = False):
     '''
     Utility function to register 2D images and save their results in a user named subfolder and transformation text file.
     
@@ -301,7 +301,7 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     
     transformationMap = selx.GetTransformParameterMap()
     
-    if fixed_mask != "none" and bounding_box == True:
+    if fixed_mask != None and bounding_box == True:
         return transformationMap, fixed_x, fixed_y, fixed_w, fixed_h, fixed_shape_original
     elif return_image == True:
         return transformationMap, transformed_image
