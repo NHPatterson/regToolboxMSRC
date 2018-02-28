@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="SingleSecMulti">
      <attribute name="title">
@@ -35,7 +35,7 @@
        <rect>
         <x>340</x>
         <y>260</y>
-        <width>201</width>
+        <width>261</width>
         <height>23</height>
        </rect>
       </property>
@@ -225,7 +225,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>580</x>
         <y>40</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -238,7 +238,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>580</x>
         <y>70</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -295,7 +295,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>580</x>
         <y>98</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -319,7 +319,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="SSM_Reg_model1">
       <property name="geometry">
        <rect>
-        <x>850</x>
+        <x>880</x>
         <y>50</y>
         <width>69</width>
         <height>22</height>
@@ -327,19 +327,34 @@ color: rgb(255, 255, 255);</string>
       </property>
       <item>
        <property name="text">
-        <string>Rigid</string>
+        <string>rigid</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Affine</string>
+        <string>affine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nl</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>scaled_rigid</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>import...</string>
        </property>
       </item>
      </widget>
      <widget class="QComboBox" name="SSM_Reg_model2">
       <property name="geometry">
        <rect>
-        <x>850</x>
+        <x>880</x>
         <y>90</y>
         <width>69</width>
         <height>22</height>
@@ -347,12 +362,27 @@ color: rgb(255, 255, 255);</string>
       </property>
       <item>
        <property name="text">
-        <string>Rigid</string>
+        <string>rigid</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Affine</string>
+        <string>affine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nl</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>scaled_rigid</string>
+       </property>
+      </item>
+     <item>
+       <property name="text">
+        <string>import...</string>
        </property>
       </item>
      </widget>
@@ -361,7 +391,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>740</x>
         <y>50</y>
-        <width>111</width>
+        <width>141</width>
         <height>20</height>
        </rect>
       </property>
@@ -374,7 +404,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>730</x>
         <y>90</y>
-        <width>121</width>
+        <width>151</width>
         <height>20</height>
        </rect>
       </property>
@@ -476,7 +506,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>740</x>
         <y>50</y>
-        <width>111</width>
+        <width>151</width>
         <height>20</height>
        </rect>
       </property>
@@ -536,7 +566,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="MSM_Reg_model1">
       <property name="geometry">
        <rect>
-        <x>850</x>
+        <x>900</x>
         <y>50</y>
         <width>69</width>
         <height>22</height>
@@ -544,12 +574,27 @@ color: rgb(255, 255, 255);</string>
       </property>
       <item>
        <property name="text">
-        <string>Rigid</string>
+        <string>rigid</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Affine</string>
+        <string>affine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nl</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>scaled_rigid</string>
+       </property>
+      </item>
+           <item>
+       <property name="text">
+        <string>import...</string>
        </property>
       </item>
      </widget>
@@ -558,7 +603,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>340</x>
         <y>260</y>
-        <width>201</width>
+        <width>261</width>
         <height>23</height>
        </rect>
       </property>
@@ -584,7 +629,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>580</x>
         <y>40</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -709,7 +754,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>580</x>
         <y>70</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -720,7 +765,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="MSM_Reg_model2">
       <property name="geometry">
        <rect>
-        <x>850</x>
+        <x>900</x>
         <y>90</y>
         <width>69</width>
         <height>22</height>
@@ -728,12 +773,27 @@ color: rgb(255, 255, 255);</string>
       </property>
       <item>
        <property name="text">
-        <string>Rigid</string>
+        <string>rigid</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Affine</string>
+        <string>affine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nl</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>scaled_rigid</string>
+       </property>
+      </item>
+           <item>
+       <property name="text">
+        <string>import...</string>
        </property>
       </item>
      </widget>
@@ -742,7 +802,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>710</x>
         <y>90</y>
-        <width>151</width>
+        <width>181</width>
         <height>20</height>
        </rect>
       </property>
@@ -867,7 +927,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>580</x>
         <y>98</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1020,7 +1080,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>360</x>
         <y>260</y>
-        <width>161</width>
+        <width>211</width>
         <height>23</height>
        </rect>
       </property>
@@ -1105,7 +1165,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>710</x>
         <y>50</y>
-        <width>131</width>
+        <width>171</width>
         <height>20</height>
        </rect>
       </property>
@@ -1116,7 +1176,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="SSS_Reg_model1">
       <property name="geometry">
        <rect>
-        <x>840</x>
+        <x>880</x>
         <y>50</y>
         <width>69</width>
         <height>22</height>
@@ -1124,12 +1184,27 @@ color: rgb(255, 255, 255);</string>
       </property>
       <item>
        <property name="text">
-        <string>Rigid</string>
+        <string>rigid</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Affine</string>
+        <string>affine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nl</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>scaled_rigid</string>
+       </property>
+      </item>
+           <item>
+       <property name="text">
+        <string>import...</string>
        </property>
       </item>
      </widget>
@@ -1402,7 +1477,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>730</x>
         <y>60</y>
-        <width>91</width>
+        <width>111</width>
         <height>20</height>
        </rect>
       </property>
@@ -1413,7 +1488,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="MSS_Reg_model1">
       <property name="geometry">
        <rect>
-        <x>820</x>
+        <x>840</x>
         <y>60</y>
         <width>69</width>
         <height>22</height>
@@ -1421,12 +1496,27 @@ color: rgb(255, 255, 255);</string>
       </property>
       <item>
        <property name="text">
-        <string>Rigid</string>
+        <string>rigid</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Affine</string>
+        <string>affine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nl</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>scaled_rigid</string>
+       </property>
+      </item>
+           <item>
+       <property name="text">
+        <string>import...</string>
        </property>
       </item>
      </widget>

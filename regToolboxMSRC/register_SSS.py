@@ -20,14 +20,21 @@ def register_SSS(source_fp, source_res,
                  source_img_type, target_img_type,
                  reg_model, 
                  project_name,
-                 return_image = False, intermediate_output = False, bounding_box = False):
+                 return_image = False, intermediate_output = False, bounding_box = False, 
+                 pass_in_project_name=False, pass_in= None):
 
     
     #set up output information
-    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
-    os.chdir(wd)
-    os.makedirs(os.path.join(os.getcwd(),ts+ project_name+"_images"))
-    opdir = ts + project_name + "_images"
+    if pass_in_project_name == False:
+        ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
+        os.chdir(wd)
+        os.makedirs(os.path.join(os.getcwd(),ts+ project_name+"_images"))
+        opdir = ts + project_name + "_images"
+    else:
+        os.chdir(wd)
+        os.makedirs(os.path.join(os.getcwd(),pass_in+"_images"))
+        opdir = pass_in + "_images"
+
     
     #load registration parameters based on input
     reg_param1 = parameter_load(reg_model)
@@ -56,7 +63,7 @@ def register_SSS(source_fp, source_res,
     else:
         sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt1.tif", True)
 
-    return
+    return os.path.join(os.getcwd(), opdir, project_name + "_src_tgt1.tif")
 
 if __name__ == '__main__':
     import yaml
@@ -72,4 +79,5 @@ if __name__ == '__main__':
                  dataMap['source_img_type'], dataMap['target_img_type'],
                  dataMap['reg_model'],
                  dataMap['project_name'], 
-                 intermediate_output = dataMap['intermediate_output'], bounding_box = dataMap['bounding_box'])
+                 intermediate_output = dataMap['intermediate_output'], bounding_box = dataMap['bounding_box'],
+                 pass_in_project_name=True, pass_in= None)

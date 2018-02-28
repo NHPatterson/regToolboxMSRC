@@ -20,7 +20,8 @@ def register_SSM(source_fp, source_res,
                  source_img_type, target1_img_type, target2_img_type, 
                  reg_model1, reg_model2, 
                  project_name,
-                 return_image = False, intermediate_output = False, bounding_box = False):
+                 return_image = False, intermediate_output = False, bounding_box = False,
+                 pass_in_project_name=False, pass_in= None):
 
     
     #set up output information

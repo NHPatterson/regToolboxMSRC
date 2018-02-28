@@ -8,21 +8,17 @@ Created on Thu Nov  2 15:32:32 2017
 import sys
 import os
 from PyQt5 import QtWidgets, uic, QtCore
-from regToolboxMSRC.utils.reg_utils  import register_SSS, register_SSM, register_MSS, register_MSM, transform_from_gui
+from regToolboxMSRC import register_SSS, register_SSM, register_MSS, register_MSM
+from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import IMS_pixel_maps
 from regToolboxMSRC.utils.flx_utils import bruker_output_xmls
 import SimpleITK as sitk
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
 import pkg_resources
-
-resource_package = 'regToolboxMSRC'  # Could be any module/package name
-resource_path = '/'.join(('GUI', 'MSRC_toolbox_v0_3.ui'))  # Do not use os.path.join(), see below
-
-#template = pkg_resources.resource_string(resource_package, resource_path)
-# or for a file-like stream:
-template = pkg_resources.resource_stream(resource_package, resource_path)
-
+import time
+import datetime
+import yaml
 
 class MainWindow(QtWidgets.QMainWindow):
     
@@ -34,7 +30,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.SSM_src_mask_fp = 'none'
         self.SSM_tgt1_mask_fp = 'none'
         self.SSM_tgt2_mask_fp = 'none'
-        self.SSM_wd = ''   
+        self.SSM_wd = ''
+        self.SSM_bounding_box = False
         
         self.MSM_source_fp = 'fp'
         self.MSM_target1_fp = 'fp'
@@ -42,19 +39,24 @@ class MainWindow(QtWidgets.QMainWindow):
         self.MSM_src_mask_fp = 'none'
         self.MSM_tgt1_mask_fp = 'none'
         self.MSM_tgt2_mask_fp = 'none'
-        self.MSM_wd = '' 
+        self.MSM_wd = ''
+        self.MSM_bounding_box = False
+
         
         self.SSS_source_fp = 'fp'
         self.SSS_target_fp = 'fp'
         self.SSS_src_mask_fp = 'none'
         self.SSS_tgt_mask_fp = 'none'
-        self.SSS_wd = ''   
+        self.SSS_wd = ''
+        self.SSS_bounding_box = False
+
         
         self.MSS_source_fp = 'fp'
         self.MSS_target_fp = 'fp'
         self.MSS_src_mask_fp = 'none'
         self.MSS_tgt_mask_fp = 'none'
-        self.MSS_wd = ''  
+        self.MSS_wd = ''
+        self.MSS_bounding_box = False
         
         self.HDR_source_fp = 'fp'
         self.HDR_target_fp = 'fp'
@@ -67,12 +69,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.TFM_transforms = []
         self.TFM_source_fp = 'fp'
         self.TFM_wd = ''
-        resource_package = 'regToolboxMSRC'  # Could be any module/package name
-        resource_path = '/'.join(('GUI', 'MSRC_toolbox_v0_3.ui'))  # Do not use os.path.join(), see below
         
-        #template = pkg_resources.resource_string(resource_package, resource_path)
-        # or for a file-like stream:
+        #load in data stored in package
+        resource_package = 'regToolboxMSRC'  
+        resource_path = '/'.join(('GUI', 'MSRC_toolbox_v0_3.ui'))  
         template = pkg_resources.resource_stream(resource_package, resource_path)
+        
         self.ui = uic.loadUi(template)
         self.ui.show()
         
@@ -220,435 +222,435 @@ class MainWindow(QtWidgets.QMainWindow):
     def saveFileDialog(self):    
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self,"Save parameter file (.xml)","","All Files (*);;XML Files (*.xml)")
         return fileName
-
-############# xml saving and loading functions 
-    def get_params_xml(self):
-        root = ET.Element("MSRC_param_file")
-		##save all parameters in XML for easy reloading
-
-        SSM_params = ET.SubElement(root, "SSM_params")
-        MSM_params = ET.SubElement(root, "MSM_params")
-        SSS_params = ET.SubElement(root, "SSS_params")
-        MSS_params = ET.SubElement(root, "MSS_params")
-        IMS_params = ET.SubElement(root, "IMS_params")
-        HDR_params = ET.SubElement(root, "HDR_params")
-
-		##SSM
-        ET.SubElement(SSM_params, "SSM_source_fp").text = self.SSM_source_fp
-        ET.SubElement(SSM_params, "SSM_target1_fp").text = self.SSM_target1_fp
-        ET.SubElement(SSM_params, "SSM_target2_fp").text = self.SSM_target2_fp
-        ET.SubElement(SSM_params, "SSM_src_mask_fp").text = self.SSM_src_mask_fp
-        ET.SubElement(SSM_params, "SSM_tgt1_mask_fp").text = self.SSM_tgt1_mask_fp
-        ET.SubElement(SSM_params, "SSM_tgt2_mask_fp").text = self.SSM_tgt2_mask_fp
-        ET.SubElement(SSM_params, "SSM_wd").text = self.SSM_wd
-        ET.SubElement(SSM_params, "SSM_source_img_type").text = self.ui.SSM_source_img_type.currentText()
-        ET.SubElement(SSM_params, "SSM_target_img_type1").text = self.ui.SSM_target_img_type1.currentText()
-        ET.SubElement(SSM_params, "SSM_target_img_type2").text = self.ui.SSM_target_img_type2.currentText()
-        ET.SubElement(SSM_params, "SSM_src_reso").text = self.ui.SSM_src_reso.text()
-        ET.SubElement(SSM_params, "SSM_tgt1_reso").text = self.ui.SSM_tgt1_reso.text()
-        ET.SubElement(SSM_params, "SSM_tgt2_reso").text = self.ui.SSM_tgt2_reso.text()
-        ET.SubElement(SSM_params, "SSM_Reg_model1").text = self.ui.SSM_Reg_model1.currentText()
-        ET.SubElement(SSM_params, "SSM_Reg_model2").text = self.ui.SSM_Reg_model2.currentText()
-        ET.SubElement(SSM_params, "SSM_textbox_fn").text = self.ui.SSM_textbox_fn.text()
-
-		##MSM
-        ET.SubElement(MSM_params, "MSM_source_fp").text = self.MSM_source_fp
-        ET.SubElement(MSM_params, "MSM_target1_fp").text = self.MSM_target1_fp
-        ET.SubElement(MSM_params, "MSM_target2_fp").text = self.MSM_target2_fp
-        ET.SubElement(MSM_params, "MSM_src_mask_fp").text = self.MSM_src_mask_fp
-        ET.SubElement(MSM_params, "MSM_tgt1_mask_fp").text = self.MSM_tgt1_mask_fp
-        ET.SubElement(MSM_params, "MSM_tgt2_mask_fp").text = self.MSM_tgt2_mask_fp
-        ET.SubElement(MSM_params, "MSM_wd").text = self.MSM_wd
-        ET.SubElement(MSM_params, "MSM_source_img_type").text = self.ui.MSM_source_img_type.currentText()
-        ET.SubElement(MSM_params, "MSM_target_img_type1").text = self.ui.MSM_target_img_type1.currentText()
-        ET.SubElement(MSM_params, "MSM_target_img_type2").text = self.ui.MSM_target_img_type2.currentText()
-        ET.SubElement(MSM_params, "MSM_src_reso").text = self.ui.MSM_src_reso.text()
-        ET.SubElement(MSM_params, "MSM_tgt1_reso").text = self.ui.MSM_tgt1_reso.text()
-        ET.SubElement(MSM_params, "MSM_tgt2_reso").text = self.ui.MSM_tgt2_reso.text()
-        ET.SubElement(MSM_params, "MSM_Reg_model1").text = self.ui.MSM_Reg_model1.currentText()
-        ET.SubElement(MSM_params, "MSM_Reg_model2").text = self.ui.MSM_Reg_model2.currentText()
-        ET.SubElement(MSM_params, "MSM_textbox_fn").text = self.ui.MSM_textbox_fn.text()
-
-		##SSS
-        ET.SubElement(SSS_params, "SSS_source_fp").text = self.SSS_source_fp
-        ET.SubElement(SSS_params, "SSS_target_fp").text = self.SSS_target_fp
-        ET.SubElement(SSS_params, "SSS_src_mask_fp").text = self.SSS_src_mask_fp
-        ET.SubElement(SSS_params, "SSS_tgt_mask_fp").text = self.SSS_tgt_mask_fp
-        ET.SubElement(SSS_params, "SSS_wd").text = self.SSS_wd
-        ET.SubElement(SSS_params, "SSS_source_img_type").text = self.ui.SSS_source_img_type.currentText()
-        ET.SubElement(SSS_params, "SSS_target_img_type").text = self.ui.SSS_target_img_type.currentText()
-        ET.SubElement(SSS_params, "SSS_src_reso").text = self.ui.SSS_src_reso.text()
-        ET.SubElement(SSS_params, "SSS_tgt_reso").text = self.ui.SSS_tgt_reso.text()
-        ET.SubElement(SSS_params, "SSS_Reg_model1").text = self.ui.SSS_Reg_model1.currentText()
-        ET.SubElement(SSS_params, "SSS_textbox_fn").text = self.ui.SSS_textbox_fn.text()
-
-		##MSS
-        ET.SubElement(MSS_params, "MSS_source_fp").text = self.MSS_source_fp
-        ET.SubElement(MSS_params, "MSS_target_fp").text = self.MSS_target_fp
-        ET.SubElement(MSS_params, "MSS_src_mask_fp").text = self.MSS_src_mask_fp
-        ET.SubElement(MSS_params, "MSS_tgt_mask_fp").text = self.MSS_tgt_mask_fp
-        ET.SubElement(MSS_params, "MSS_wd").text = self.MSS_wd
-        ET.SubElement(MSS_params, "MSS_source_img_type").text = self.ui.MSS_source_img_type.currentText()
-        ET.SubElement(MSS_params, "MSS_target_img_type").text = self.ui.MSS_target_img_type.currentText()
-        ET.SubElement(MSS_params, "MSS_src_reso").text = self.ui.MSS_src_reso.text()
-        ET.SubElement(MSS_params, "MSS_tgt_reso").text = self.ui.MSS_tgt_reso.text()
-        ET.SubElement(MSS_params, "MSS_Reg_model1").text = self.ui.MSS_Reg_model1.currentText()
-        ET.SubElement(MSS_params, "MSS_textbox_fn").text = self.ui.MSS_textbox_fn.text()
-
-		##IMS
-        ET.SubElement(IMS_params, "IMS_data_fp").text = self.IMS_data_fp
-        ET.SubElement(IMS_params, "IMS_wd").text = self.IMS_wd
-        ET.SubElement(IMS_params, "IMS_ims_reso").text = self.ui.IMS_ims_reso.text()
-        ET.SubElement(IMS_params, "IMS_micro_reso").text = self.ui.IMS_micro_reso.text()
-        ET.SubElement(IMS_params, "IMS_padding").text = self.ui.IMS_padding.text()
-        ET.SubElement(IMS_params, "IMS_textbox_fn").text = self.ui.IMS_textbox_fn.text()
-
-		##HDR
-        ET.SubElement(HDR_params, "HDR_source_fp").text = self.HDR_source_fp
-        ET.SubElement(HDR_params, "HDR_target_fp").text = self.HDR_target_fp
-        ET.SubElement(HDR_params, "HDR_wd").text = self.HDR_wd
-        ET.SubElement(HDR_params, "HDR_ims_reso").text = self.ui.HDR_ims_reso.text()
-        ET.SubElement(HDR_params, "HDR_par_fp").text = self.ui.HDR_par_fp.text()
-        ET.SubElement(HDR_params, "HDR_roi_names").text = self.ui.HDR_roi_names.text()
-        ET.SubElement(HDR_params, "HDR_textbox_fn").text = self.ui.HDR_textbox_fn.text()
-
-		#tree = ET.ElementTree(root)
-        return root
     
-    def parse_params_xml(self, xml_fp):
-        doc = ET.parse(xml_fp).getroot()
-        
-        SSM_params_parsed = []
-        MSM_params_parsed = []
-        SSS_params_parsed = []
-        MSS_params_parsed = []
-        IMS_params_parsed = []
-        HDR_params_parsed = []
-        
-        for element in doc.findall('SSM_params/'):
-            if element.text == None:
-                SSM_params_parsed.append('')
-            else:
-                SSM_params_parsed.append(element.text)
-        
-        for element in doc.findall('MSM_params/'):
-            if element.text == None:
-                MSM_params_parsed.append('')
-            else:
-                MSM_params_parsed.append(element.text)
-        
-        for element in doc.findall('SSS_params/'):
-            if element.text == None:
-                SSS_params_parsed.append('')
-            else:
-                SSS_params_parsed.append(element.text)
-        
-        for element in doc.findall('MSS_params/'):
-            if element.text == None:
-                MSS_params_parsed.append('')
-            else:
-                MSS_params_parsed.append(element.text)
-        
-        for element in doc.findall('IMS_params/'):
-            if element.text == None:
-                IMS_params_parsed.append('')
-            else:
-                IMS_params_parsed.append(element.text)
-                
-        for element in doc.findall('HDR_params/'):
-            if element.text == None:
-                HDR_params_parsed.append('')
-            else:
-                HDR_params_parsed.append(element.text)
-        
-        return SSM_params_parsed, MSM_params_parsed, SSS_params_parsed, MSS_params_parsed, IMS_params_parsed, HDR_params_parsed
+############## xml saving and loading functions 
+#    def get_params_xml(self):
+#        root = ET.Element("MSRC_param_file")
+#		##save all parameters in XML for easy reloading
+#
+#        SSM_params = ET.SubElement(root, "SSM_params")
+#        MSM_params = ET.SubElement(root, "MSM_params")
+#        SSS_params = ET.SubElement(root, "SSS_params")
+#        MSS_params = ET.SubElement(root, "MSS_params")
+#        IMS_params = ET.SubElement(root, "IMS_params")
+#        HDR_params = ET.SubElement(root, "HDR_params")
+#
+#		##SSM
+#        ET.SubElement(SSM_params, "SSM_source_fp").text = self.SSM_source_fp
+#        ET.SubElement(SSM_params, "SSM_target1_fp").text = self.SSM_target1_fp
+#        ET.SubElement(SSM_params, "SSM_target2_fp").text = self.SSM_target2_fp
+#        ET.SubElement(SSM_params, "SSM_src_mask_fp").text = self.SSM_src_mask_fp
+#        ET.SubElement(SSM_params, "SSM_tgt1_mask_fp").text = self.SSM_tgt1_mask_fp
+#        ET.SubElement(SSM_params, "SSM_tgt2_mask_fp").text = self.SSM_tgt2_mask_fp
+#        ET.SubElement(SSM_params, "SSM_wd").text = self.SSM_wd
+#        ET.SubElement(SSM_params, "SSM_source_img_type").text = self.ui.SSM_source_img_type.currentText()
+#        ET.SubElement(SSM_params, "SSM_target_img_type1").text = self.ui.SSM_target_img_type1.currentText()
+#        ET.SubElement(SSM_params, "SSM_target_img_type2").text = self.ui.SSM_target_img_type2.currentText()
+#        ET.SubElement(SSM_params, "SSM_src_reso").text = self.ui.SSM_src_reso.text()
+#        ET.SubElement(SSM_params, "SSM_tgt1_reso").text = self.ui.SSM_tgt1_reso.text()
+#        ET.SubElement(SSM_params, "SSM_tgt2_reso").text = self.ui.SSM_tgt2_reso.text()
+#        ET.SubElement(SSM_params, "SSM_Reg_model1").text = self.ui.SSM_Reg_model1.currentText()
+#        ET.SubElement(SSM_params, "SSM_Reg_model2").text = self.ui.SSM_Reg_model2.currentText()
+#        ET.SubElement(SSM_params, "SSM_textbox_fn").text = self.ui.SSM_textbox_fn.text()
+#
+#		##MSM
+#        ET.SubElement(MSM_params, "MSM_source_fp").text = self.MSM_source_fp
+#        ET.SubElement(MSM_params, "MSM_target1_fp").text = self.MSM_target1_fp
+#        ET.SubElement(MSM_params, "MSM_target2_fp").text = self.MSM_target2_fp
+#        ET.SubElement(MSM_params, "MSM_src_mask_fp").text = self.MSM_src_mask_fp
+#        ET.SubElement(MSM_params, "MSM_tgt1_mask_fp").text = self.MSM_tgt1_mask_fp
+#        ET.SubElement(MSM_params, "MSM_tgt2_mask_fp").text = self.MSM_tgt2_mask_fp
+#        ET.SubElement(MSM_params, "MSM_wd").text = self.MSM_wd
+#        ET.SubElement(MSM_params, "MSM_source_img_type").text = self.ui.MSM_source_img_type.currentText()
+#        ET.SubElement(MSM_params, "MSM_target_img_type1").text = self.ui.MSM_target_img_type1.currentText()
+#        ET.SubElement(MSM_params, "MSM_target_img_type2").text = self.ui.MSM_target_img_type2.currentText()
+#        ET.SubElement(MSM_params, "MSM_src_reso").text = self.ui.MSM_src_reso.text()
+#        ET.SubElement(MSM_params, "MSM_tgt1_reso").text = self.ui.MSM_tgt1_reso.text()
+#        ET.SubElement(MSM_params, "MSM_tgt2_reso").text = self.ui.MSM_tgt2_reso.text()
+#        ET.SubElement(MSM_params, "MSM_Reg_model1").text = self.ui.MSM_Reg_model1.currentText()
+#        ET.SubElement(MSM_params, "MSM_Reg_model2").text = self.ui.MSM_Reg_model2.currentText()
+#        ET.SubElement(MSM_params, "MSM_textbox_fn").text = self.ui.MSM_textbox_fn.text()
+#
+#		##SSS
+#        ET.SubElement(SSS_params, "SSS_source_fp").text = self.SSS_source_fp
+#        ET.SubElement(SSS_params, "SSS_target_fp").text = self.SSS_target_fp
+#        ET.SubElement(SSS_params, "SSS_src_mask_fp").text = self.SSS_src_mask_fp
+#        ET.SubElement(SSS_params, "SSS_tgt_mask_fp").text = self.SSS_tgt_mask_fp
+#        ET.SubElement(SSS_params, "SSS_wd").text = self.SSS_wd
+#        ET.SubElement(SSS_params, "SSS_source_img_type").text = self.ui.SSS_source_img_type.currentText()
+#        ET.SubElement(SSS_params, "SSS_target_img_type").text = self.ui.SSS_target_img_type.currentText()
+#        ET.SubElement(SSS_params, "SSS_src_reso").text = self.ui.SSS_src_reso.text()
+#        ET.SubElement(SSS_params, "SSS_tgt_reso").text = self.ui.SSS_tgt_reso.text()
+#        ET.SubElement(SSS_params, "SSS_Reg_model1").text = self.ui.SSS_Reg_model1.currentText()
+#        ET.SubElement(SSS_params, "SSS_textbox_fn").text = self.ui.SSS_textbox_fn.text()
+#
+#		##MSS
+#        ET.SubElement(MSS_params, "MSS_source_fp").text = self.MSS_source_fp
+#        ET.SubElement(MSS_params, "MSS_target_fp").text = self.MSS_target_fp
+#        ET.SubElement(MSS_params, "MSS_src_mask_fp").text = self.MSS_src_mask_fp
+#        ET.SubElement(MSS_params, "MSS_tgt_mask_fp").text = self.MSS_tgt_mask_fp
+#        ET.SubElement(MSS_params, "MSS_wd").text = self.MSS_wd
+#        ET.SubElement(MSS_params, "MSS_source_img_type").text = self.ui.MSS_source_img_type.currentText()
+#        ET.SubElement(MSS_params, "MSS_target_img_type").text = self.ui.MSS_target_img_type.currentText()
+#        ET.SubElement(MSS_params, "MSS_src_reso").text = self.ui.MSS_src_reso.text()
+#        ET.SubElement(MSS_params, "MSS_tgt_reso").text = self.ui.MSS_tgt_reso.text()
+#        ET.SubElement(MSS_params, "MSS_Reg_model1").text = self.ui.MSS_Reg_model1.currentText()
+#        ET.SubElement(MSS_params, "MSS_textbox_fn").text = self.ui.MSS_textbox_fn.text()
+#
+#		##IMS
+#        ET.SubElement(IMS_params, "IMS_data_fp").text = self.IMS_data_fp
+#        ET.SubElement(IMS_params, "IMS_wd").text = self.IMS_wd
+#        ET.SubElement(IMS_params, "IMS_ims_reso").text = self.ui.IMS_ims_reso.text()
+#        ET.SubElement(IMS_params, "IMS_micro_reso").text = self.ui.IMS_micro_reso.text()
+#        ET.SubElement(IMS_params, "IMS_padding").text = self.ui.IMS_padding.text()
+#        ET.SubElement(IMS_params, "IMS_textbox_fn").text = self.ui.IMS_textbox_fn.text()
+#
+#		##HDR
+#        ET.SubElement(HDR_params, "HDR_source_fp").text = self.HDR_source_fp
+#        ET.SubElement(HDR_params, "HDR_target_fp").text = self.HDR_target_fp
+#        ET.SubElement(HDR_params, "HDR_wd").text = self.HDR_wd
+#        ET.SubElement(HDR_params, "HDR_ims_reso").text = self.ui.HDR_ims_reso.text()
+#        ET.SubElement(HDR_params, "HDR_par_fp").text = self.ui.HDR_par_fp.text()
+#        ET.SubElement(HDR_params, "HDR_roi_names").text = self.ui.HDR_roi_names.text()
+#        ET.SubElement(HDR_params, "HDR_textbox_fn").text = self.ui.HDR_textbox_fn.text()
+#
+#		#tree = ET.ElementTree(root)
+#        return root
+#    
+#    def parse_params_xml(self, xml_fp):
+#        doc = ET.parse(xml_fp).getroot()
+#        
+#        SSM_params_parsed = []
+#        MSM_params_parsed = []
+#        SSS_params_parsed = []
+#        MSS_params_parsed = []
+#        IMS_params_parsed = []
+#        HDR_params_parsed = []
+#        
+#        for element in doc.findall('SSM_params/'):
+#            if element.text == None:
+#                SSM_params_parsed.append('')
+#            else:
+#                SSM_params_parsed.append(element.text)
+#        
+#        for element in doc.findall('MSM_params/'):
+#            if element.text == None:
+#                MSM_params_parsed.append('')
+#            else:
+#                MSM_params_parsed.append(element.text)
+#        
+#        for element in doc.findall('SSS_params/'):
+#            if element.text == None:
+#                SSS_params_parsed.append('')
+#            else:
+#                SSS_params_parsed.append(element.text)
+#        
+#        for element in doc.findall('MSS_params/'):
+#            if element.text == None:
+#                MSS_params_parsed.append('')
+#            else:
+#                MSS_params_parsed.append(element.text)
+#        
+#        for element in doc.findall('IMS_params/'):
+#            if element.text == None:
+#                IMS_params_parsed.append('')
+#            else:
+#                IMS_params_parsed.append(element.text)
+#                
+#        for element in doc.findall('HDR_params/'):
+#            if element.text == None:
+#                HDR_params_parsed.append('')
+#            else:
+#                HDR_params_parsed.append(element.text)
+#        
+#        return SSM_params_parsed, MSM_params_parsed, SSS_params_parsed, MSS_params_parsed, IMS_params_parsed, HDR_params_parsed
     
-    def SaveParam_oc(self):
-        xml_params = self.get_params_xml()
-        fileName = self.saveFileDialog()
-        if fileName:
-            stringed = ET.tostring(xml_params)
-            reparsed = xml.dom.minidom.parseString(stringed)
-
-            myfile = open(fileName, "w")  
-            myfile.write(reparsed.toprettyxml(indent="\t")) 
-            
-    def LoadParam_oc(self):
-        fileName = self.openFileNameDialog()
-        #print(os.path.splitext(fileName)[1].lower())
-        if fileName and os.path.splitext(fileName)[1].lower() == '.xml':
-            SSM_params_parsed, MSM_params_parsed, SSS_params_parsed, MSS_params_parsed, IMS_params_parsed, HDR_params_parsed = self.parse_params_xml(fileName)
-            ##SSM
-            #print(SSM_params_parsed)
-            ##load in parameters into class
-            self.SSM_source_fp                         = SSM_params_parsed[0 ]
-            self.SSM_target1_fp                        = SSM_params_parsed[1 ]
-            self.SSM_target2_fp                        = SSM_params_parsed[2 ]
-            self.SSM_src_mask_fp                       = SSM_params_parsed[3 ]
-            self.SSM_tgt1_mask_fp                      = SSM_params_parsed[4 ]
-            self.SSM_tgt2_mask_fp                      = SSM_params_parsed[5 ]
-            self.SSM_wd                                = SSM_params_parsed[6 ]
-            
-            
-            ##set imageType Regmodel
-            index = self.ui.SSM_source_img_type.findText(SSM_params_parsed[7 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSM_source_img_type.setCurrentIndex(index)
-            
-            index = self.ui.SSM_target_img_type1.findText(SSM_params_parsed[8 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSM_target_img_type1.setCurrentIndex(index)
-            	
-            index = self.ui.SSM_target_img_type2.findText(SSM_params_parsed[9 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSM_target_img_type2.setCurrentIndex(index)	
-            
-            
-            self.ui.SSM_src_reso.setText(SSM_params_parsed[10])
-            self.ui.SSM_tgt1_reso.setText(SSM_params_parsed[11])
-            self.ui.SSM_tgt2_reso.setText(SSM_params_parsed[12])
-            
-            ##set combobox Regmodel
-            index = self.ui.SSM_Reg_model1.findText(SSM_params_parsed[13 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSM_Reg_model1.setCurrentIndex(index)
-            
-            index = self.ui.SSM_Reg_model2.findText(SSM_params_parsed[14 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSM_Reg_model2.setCurrentIndex(index)
-            	 
-            self.ui.SSM_textbox_fn.setText(SSM_params_parsed[15])
-            
-            
-            ##update boxes
-            if SSM_params_parsed[0 ] == 'fp':
-                self.ui.SSM_textbox_source.setText("source image not set...")
-            else:
-                self.ui.SSM_textbox_source.setText(os.path.basename(SSM_params_parsed[0 ]))
-
-            if SSM_params_parsed[1 ] == 'fp':
-                self.ui.SSM_textbox_target1.setText("source image not set...")
-            else:
-                self.ui.SSM_textbox_target1.setText(os.path.basename(SSM_params_parsed[1 ]))
-                
-            if SSM_params_parsed[2 ] == 'fp':
-                self.ui.SSM_textbox_target2.setText("source image not set...")
-            else:
-                self.ui.SSM_textbox_target2.setText(os.path.basename(SSM_params_parsed[3 ]))
-            	
-            if SSM_params_parsed[6 ] == '':
-                self.ui.SSM_textbox_wd.setText("working directory not set...")
-            else:
-                self.ui.SSM_textbox_wd.setText(SSM_params_parsed[6 ])
-            
-            
-            ##MSM
-            ##load in parameters into class
-            self.MSM_source_fp                         = MSM_params_parsed[0 ]
-            self.MSM_target1_fp                        = MSM_params_parsed[1 ]
-            self.MSM_target2_fp                        = MSM_params_parsed[2 ]
-            self.MSM_src_mask_fp                       = MSM_params_parsed[3 ]
-            self.MSM_tgt1_mask_fp                      = MSM_params_parsed[4 ]
-            self.MSM_tgt2_mask_fp                      = MSM_params_parsed[5 ]
-            self.MSM_wd                                = MSM_params_parsed[6 ]
-            
-            
-            ##set imageType Regmodel
-            index = self.ui.MSM_source_img_type.findText(MSM_params_parsed[7 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSM_source_img_type.setCurrentIndex(index)
-            
-            index = self.ui.MSM_target_img_type1.findText(MSM_params_parsed[8 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSM_target_img_type1.setCurrentIndex(index)
-            	
-            index = self.ui.MSM_target_img_type2.findText(MSM_params_parsed[9 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSM_target_img_type2.setCurrentIndex(index)	
-            
-            
-            self.ui.MSM_src_reso.setText(MSM_params_parsed[10])
-            self.ui.MSM_tgt1_reso.setText(MSM_params_parsed[11])
-            self.ui.MSM_tgt2_reso.setText(MSM_params_parsed[12])
-            
-            ##set combobox Regmodel
-            index = self.ui.MSM_Reg_model1.findText(MSM_params_parsed[13 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSM_Reg_model1.setCurrentIndex(index)
-            
-            index = self.ui.MSM_Reg_model2.findText(MSM_params_parsed[14 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSM_Reg_model2.setCurrentIndex(index)
-            	 
-            self.ui.MSM_textbox_fn.setText(MSM_params_parsed[15])
-            
-            
-            ##update boxes
-            if MSM_params_parsed[0 ] == 'fp':
-                self.ui.MSM_textbox_source.setText("source image not set...")
-            else:
-                self.ui.MSM_textbox_source.setText(os.path.basename(MSM_params_parsed[0 ]))
-
-            if MSM_params_parsed[1 ] == 'fp':
-                self.ui.MSM_textbox_target1.setText("source image not set...")
-            else:
-                self.ui.MSM_textbox_target1.setText(os.path.basename(MSM_params_parsed[1 ]))
-                
-            if MSM_params_parsed[2 ] == 'fp':
-                self.ui.MSM_textbox_target2.setText("source image not set...")
-            else:
-                self.ui.MSM_textbox_target2.setText(os.path.basename(MSM_params_parsed[3 ]))
-            	
-            if MSM_params_parsed[6 ] == '':
-                self.ui.MSM_textbox_wd.setText("working directory not set...")
-            else:
-                self.ui.MSM_textbox_wd.setText(MSM_params_parsed[6 ])
-            
-            ##SSS
-            
-            ##load in parameters into class
-            self.SSS_source_fp                         = SSS_params_parsed[0 ]
-            self.SSS_target_fp                         = SSS_params_parsed[1 ]
-            self.SSS_src_mask_fp                       = SSS_params_parsed[2 ]
-            self.SSS_tgt1_mask_fp                      = SSS_params_parsed[3 ]
-            self.SSS_wd                                = SSS_params_parsed[4 ]
-            
-            ##set imageType Regmodel
-            index = self.ui.SSS_source_img_type.findText(SSS_params_parsed[5 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSS_source_img_type.setCurrentIndex(index)
-            
-            index = self.ui.SSS_target_img_type.findText(SSS_params_parsed[6 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSS_target_img_type.setCurrentIndex(index)
-            	
-            
-            self.ui.SSS_src_reso.setText(SSS_params_parsed[7])
-            self.ui.SSS_tgt_reso.setText(SSS_params_parsed[8])
-            
-            ##set combobox Regmodel
-            index = self.ui.SSS_Reg_model1.findText(SSS_params_parsed[9 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.SSS_Reg_model1.setCurrentIndex(index)
-            
-            
-            self.ui.SSS_textbox_fn.setText(SSS_params_parsed[10])
-            
-            
-            ##update boxes
-            if SSS_params_parsed[0 ] == 'fp':
-                self.ui.SSS_textbox_source.setText("source image not set...")
-            else:
-                self.ui.SSS_textbox_source.setText(os.path.basename(SSS_params_parsed[0 ]))
-            
-            if SSS_params_parsed[1 ] == 'fp':
-                self.ui.SSS_textbox_target.setText("source image not set...")
-            else:
-                self.ui.SSS_textbox_target.setText(os.path.basename(SSS_params_parsed[1 ]))
-            
-            if SSS_params_parsed[4 ] == '':
-                self.ui.SSS_textbox_wd.setText("working directory not set...")
-            else:
-                self.ui.SSS_textbox_wd.setText(os.path.basename(SSS_params_parsed[4 ]))
-            
-            ##MSS
-            
-            ##load in parameters into class
-            self.MSS_source_fp                         = MSS_params_parsed[0 ]
-            self.MSS_target_fp                         = MSS_params_parsed[1 ]
-            self.MSS_src_mask_fp                       = MSS_params_parsed[2 ]
-            self.MSS_tgt1_mask_fp                      = MSS_params_parsed[3 ]
-            self.MSS_wd                                = MSS_params_parsed[4 ]
-            
-            
-            ##set imageType Regmodel
-            index = self.ui.MSS_source_img_type.findText(MSS_params_parsed[5 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSS_source_img_type.setCurrentIndex(index)
-            
-            index = self.ui.MSS_target_img_type.findText(MSS_params_parsed[6 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSS_target_img_type.setCurrentIndex(index)
-            	
-            
-            self.ui.MSS_src_reso.setText(MSS_params_parsed[7])
-            self.ui.MSS_tgt_reso.setText(MSS_params_parsed[8])
-            
-            ##set combobox Regmodel
-            index = self.ui.MSS_Reg_model1.findText(MSS_params_parsed[9 ], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSS_Reg_model1.setCurrentIndex(index)
-            
-            
-            self.ui.MSS_textbox_fn.setText(MSS_params_parsed[10])
-            
-            
-            ##update boxes
-            if MSS_params_parsed[0 ] == 'fp':
-                self.ui.MSS_textbox_source.setText("source image not set...")
-            else:
-                self.ui.MSS_textbox_source.setText(os.path.basename(MSS_params_parsed[0 ]))
-            
-            if MSS_params_parsed[1 ] == 'fp':
-                self.ui.MSS_textbox_target.setText("source image not set...")
-            else:
-                self.ui.MSS_textbox_target.setText(os.path.basename(MSS_params_parsed[1 ]))
-            
-            if MSS_params_parsed[4 ] == '':
-                self.ui.MSS_textbox_wd.setText("working directory not set...")
-            else:
-                self.ui.MSS_textbox_wd.setText(MSS_params_parsed[4 ])
-
-            ##IMS
-
-            ##load in parameters into class
-            self.IMS_data_fp                           = IMS_params_parsed[0 ]
-            self.IMS_wd                                = IMS_params_parsed[1 ]
-            
-            self.ui.IMS_ims_reso.setText(IMS_params_parsed[2])
-            self.ui.IMS_micro_reso.setText(IMS_params_parsed[3])
-            self.ui.IMS_padding.setText(IMS_params_parsed[4])
-            self.ui.IMS_textbox_fn.setText(IMS_params_parsed[5])
-            
-            
-            ##update boxes
-            if MSS_params_parsed[0 ] == 'fp':
-                self.ui.IMS_textbox_source.setText("IMS data not set...")
-            else:
-                self.ui.IMS_textbox_source.setText(os.path.basename(IMS_params_parsed[0]))
-            
-            if IMS_params_parsed[1 ] == '':
-                self.ui.IMS_textbox_wd.setText("working directory not set...")
-            else:
-                self.ui.IMS_textbox_wd.setText(IMS_params_parsed[1 ])
-
-            
-            ##HDR            
-            ##load in parameters into class
-            self.HDR_source_fp                         = HDR_params_parsed[0 ]
-            self.HDR_target_fp                         = HDR_params_parsed[1 ]
-            self.HDR_wd                                = HDR_params_parsed[2 ]
-                        	            
-            self.ui.HDR_ims_reso.setText(HDR_params_parsed[3])
-            self.ui.HDR_par_fp.setText(HDR_params_parsed[4])
-            self.ui.HDR_roi_names.setText(HDR_params_parsed[5])            
-            self.ui.HDR_textbox_fn.setText(HDR_params_parsed[6])
-            
-            ##update boxes
-            if HDR_params_parsed[0 ] == 'fp':
-                self.ui.HDR_textbox_source.setText("source image not set...")
-            else:
-                self.ui.HDR_textbox_source.setText(os.path.basename(HDR_params_parsed[0 ]))
-            
-            if HDR_params_parsed[1 ] == 'fp':
-                self.ui.HDR_textbox_target.setText("target image not set...")
-            else:
-                self.ui.HDR_textbox_target.setText(os.path.basename(HDR_params_parsed[1 ]))
-            
-            if HDR_params_parsed[2 ] == '':
-                self.ui.HDR_textbox_wd.setText("working directory not set...")
-            else:
-                self.ui.HDR_textbox_wd.setText(os.path.basename(HDR_params_parsed[2]))
+#    def SaveParam_oc(self):
+#        xml_params = self.get_params_xml()
+#        fileName = self.saveFileDialog()
+#        if fileName:
+#            stringed = ET.tostring(xml_params)
+#            reparsed = xml.dom.minidom.parseString(stringed)
+#
+#            myfile = open(fileName, "w")  
+#            myfile.write(reparsed.toprettyxml(indent="\t")) 
+#            
+#    def LoadParam_oc(self):
+#        fileName = self.openFileNameDialog()
+#        #print(os.path.splitext(fileName)[1].lower())
+#        if fileName and os.path.splitext(fileName)[1].lower() == '.xml':
+#            SSM_params_parsed, MSM_params_parsed, SSS_params_parsed, MSS_params_parsed, IMS_params_parsed, HDR_params_parsed = self.parse_params_xml(fileName)
+#            ##SSM
+#            #print(SSM_params_parsed)
+#            ##load in parameters into class
+#            self.SSM_source_fp                         = SSM_params_parsed[0 ]
+#            self.SSM_target1_fp                        = SSM_params_parsed[1 ]
+#            self.SSM_target2_fp                        = SSM_params_parsed[2 ]
+#            self.SSM_src_mask_fp                       = SSM_params_parsed[3 ]
+#            self.SSM_tgt1_mask_fp                      = SSM_params_parsed[4 ]
+#            self.SSM_tgt2_mask_fp                      = SSM_params_parsed[5 ]
+#            self.SSM_wd                                = SSM_params_parsed[6 ]
+#            
+#            
+#            ##set imageType Regmodel
+#            index = self.ui.SSM_source_img_type.findText(SSM_params_parsed[7 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSM_source_img_type.setCurrentIndex(index)
+#            
+#            index = self.ui.SSM_target_img_type1.findText(SSM_params_parsed[8 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSM_target_img_type1.setCurrentIndex(index)
+#            	
+#            index = self.ui.SSM_target_img_type2.findText(SSM_params_parsed[9 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSM_target_img_type2.setCurrentIndex(index)	
+#            
+#            
+#            self.ui.SSM_src_reso.setText(SSM_params_parsed[10])
+#            self.ui.SSM_tgt1_reso.setText(SSM_params_parsed[11])
+#            self.ui.SSM_tgt2_reso.setText(SSM_params_parsed[12])
+#            
+#            ##set combobox Regmodel
+#            index = self.ui.SSM_Reg_model1.findText(SSM_params_parsed[13 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSM_Reg_model1.setCurrentIndex(index)
+#            
+#            index = self.ui.SSM_Reg_model2.findText(SSM_params_parsed[14 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSM_Reg_model2.setCurrentIndex(index)
+#            	 
+#            self.ui.SSM_textbox_fn.setText(SSM_params_parsed[15])
+#            
+#            
+#            ##update boxes
+#            if SSM_params_parsed[0 ] == 'fp':
+#                self.ui.SSM_textbox_source.setText("source image not set...")
+#            else:
+#                self.ui.SSM_textbox_source.setText(os.path.basename(SSM_params_parsed[0 ]))
+#
+#            if SSM_params_parsed[1 ] == 'fp':
+#                self.ui.SSM_textbox_target1.setText("source image not set...")
+#            else:
+#                self.ui.SSM_textbox_target1.setText(os.path.basename(SSM_params_parsed[1 ]))
+#                
+#            if SSM_params_parsed[2 ] == 'fp':
+#                self.ui.SSM_textbox_target2.setText("source image not set...")
+#            else:
+#                self.ui.SSM_textbox_target2.setText(os.path.basename(SSM_params_parsed[3 ]))
+#            	
+#            if SSM_params_parsed[6 ] == '':
+#                self.ui.SSM_textbox_wd.setText("working directory not set...")
+#            else:
+#                self.ui.SSM_textbox_wd.setText(SSM_params_parsed[6 ])
+#            
+#            
+#            ##MSM
+#            ##load in parameters into class
+#            self.MSM_source_fp                         = MSM_params_parsed[0 ]
+#            self.MSM_target1_fp                        = MSM_params_parsed[1 ]
+#            self.MSM_target2_fp                        = MSM_params_parsed[2 ]
+#            self.MSM_src_mask_fp                       = MSM_params_parsed[3 ]
+#            self.MSM_tgt1_mask_fp                      = MSM_params_parsed[4 ]
+#            self.MSM_tgt2_mask_fp                      = MSM_params_parsed[5 ]
+#            self.MSM_wd                                = MSM_params_parsed[6 ]
+#            
+#            
+#            ##set imageType Regmodel
+#            index = self.ui.MSM_source_img_type.findText(MSM_params_parsed[7 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSM_source_img_type.setCurrentIndex(index)
+#            
+#            index = self.ui.MSM_target_img_type1.findText(MSM_params_parsed[8 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSM_target_img_type1.setCurrentIndex(index)
+#            	
+#            index = self.ui.MSM_target_img_type2.findText(MSM_params_parsed[9 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSM_target_img_type2.setCurrentIndex(index)	
+#            
+#            
+#            self.ui.MSM_src_reso.setText(MSM_params_parsed[10])
+#            self.ui.MSM_tgt1_reso.setText(MSM_params_parsed[11])
+#            self.ui.MSM_tgt2_reso.setText(MSM_params_parsed[12])
+#            
+#            ##set combobox Regmodel
+#            index = self.ui.MSM_Reg_model1.findText(MSM_params_parsed[13 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSM_Reg_model1.setCurrentIndex(index)
+#            
+#            index = self.ui.MSM_Reg_model2.findText(MSM_params_parsed[14 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSM_Reg_model2.setCurrentIndex(index)
+#            	 
+#            self.ui.MSM_textbox_fn.setText(MSM_params_parsed[15])
+#            
+#            
+#            ##update boxes
+#            if MSM_params_parsed[0 ] == 'fp':
+#                self.ui.MSM_textbox_source.setText("source image not set...")
+#            else:
+#                self.ui.MSM_textbox_source.setText(os.path.basename(MSM_params_parsed[0 ]))
+#
+#            if MSM_params_parsed[1 ] == 'fp':
+#                self.ui.MSM_textbox_target1.setText("source image not set...")
+#            else:
+#                self.ui.MSM_textbox_target1.setText(os.path.basename(MSM_params_parsed[1 ]))
+#                
+#            if MSM_params_parsed[2 ] == 'fp':
+#                self.ui.MSM_textbox_target2.setText("source image not set...")
+#            else:
+#                self.ui.MSM_textbox_target2.setText(os.path.basename(MSM_params_parsed[3 ]))
+#            	
+#            if MSM_params_parsed[6 ] == '':
+#                self.ui.MSM_textbox_wd.setText("working directory not set...")
+#            else:
+#                self.ui.MSM_textbox_wd.setText(MSM_params_parsed[6 ])
+#            
+#            ##SSS
+#            
+#            ##load in parameters into class
+#            self.SSS_source_fp                         = SSS_params_parsed[0 ]
+#            self.SSS_target_fp                         = SSS_params_parsed[1 ]
+#            self.SSS_src_mask_fp                       = SSS_params_parsed[2 ]
+#            self.SSS_tgt1_mask_fp                      = SSS_params_parsed[3 ]
+#            self.SSS_wd                                = SSS_params_parsed[4 ]
+#            
+#            ##set imageType Regmodel
+#            index = self.ui.SSS_source_img_type.findText(SSS_params_parsed[5 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSS_source_img_type.setCurrentIndex(index)
+#            
+#            index = self.ui.SSS_target_img_type.findText(SSS_params_parsed[6 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSS_target_img_type.setCurrentIndex(index)
+#            	
+#            
+#            self.ui.SSS_src_reso.setText(SSS_params_parsed[7])
+#            self.ui.SSS_tgt_reso.setText(SSS_params_parsed[8])
+#            
+#            ##set combobox Regmodel
+#            index = self.ui.SSS_Reg_model1.findText(SSS_params_parsed[9 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.SSS_Reg_model1.setCurrentIndex(index)
+#            
+#            
+#            self.ui.SSS_textbox_fn.setText(SSS_params_parsed[10])
+#            
+#            
+#            ##update boxes
+#            if SSS_params_parsed[0 ] == 'fp':
+#                self.ui.SSS_textbox_source.setText("source image not set...")
+#            else:
+#                self.ui.SSS_textbox_source.setText(os.path.basename(SSS_params_parsed[0 ]))
+#            
+#            if SSS_params_parsed[1 ] == 'fp':
+#                self.ui.SSS_textbox_target.setText("source image not set...")
+#            else:
+#                self.ui.SSS_textbox_target.setText(os.path.basename(SSS_params_parsed[1 ]))
+#            
+#            if SSS_params_parsed[4 ] == '':
+#                self.ui.SSS_textbox_wd.setText("working directory not set...")
+#            else:
+#                self.ui.SSS_textbox_wd.setText(os.path.basename(SSS_params_parsed[4 ]))
+#            
+#            ##MSS
+#            
+#            ##load in parameters into class
+#            self.MSS_source_fp                         = MSS_params_parsed[0 ]
+#            self.MSS_target_fp                         = MSS_params_parsed[1 ]
+#            self.MSS_src_mask_fp                       = MSS_params_parsed[2 ]
+#            self.MSS_tgt1_mask_fp                      = MSS_params_parsed[3 ]
+#            self.MSS_wd                                = MSS_params_parsed[4 ]
+#            
+#            
+#            ##set imageType Regmodel
+#            index = self.ui.MSS_source_img_type.findText(MSS_params_parsed[5 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSS_source_img_type.setCurrentIndex(index)
+#            
+#            index = self.ui.MSS_target_img_type.findText(MSS_params_parsed[6 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSS_target_img_type.setCurrentIndex(index)
+#            	
+#            
+#            self.ui.MSS_src_reso.setText(MSS_params_parsed[7])
+#            self.ui.MSS_tgt_reso.setText(MSS_params_parsed[8])
+#            
+#            ##set combobox Regmodel
+#            index = self.ui.MSS_Reg_model1.findText(MSS_params_parsed[9 ], QtCore.Qt.MatchFixedString)
+#            if index >= 0:
+#            	 self.ui.MSS_Reg_model1.setCurrentIndex(index)
+#            
+#            
+#            self.ui.MSS_textbox_fn.setText(MSS_params_parsed[10])
+#            
+#            
+#            ##update boxes
+#            if MSS_params_parsed[0 ] == 'fp':
+#                self.ui.MSS_textbox_source.setText("source image not set...")
+#            else:
+#                self.ui.MSS_textbox_source.setText(os.path.basename(MSS_params_parsed[0 ]))
+#            
+#            if MSS_params_parsed[1 ] == 'fp':
+#                self.ui.MSS_textbox_target.setText("source image not set...")
+#            else:
+#                self.ui.MSS_textbox_target.setText(os.path.basename(MSS_params_parsed[1 ]))
+#            
+#            if MSS_params_parsed[4 ] == '':
+#                self.ui.MSS_textbox_wd.setText("working directory not set...")
+#            else:
+#                self.ui.MSS_textbox_wd.setText(MSS_params_parsed[4 ])
+#
+#            ##IMS
+#
+#            ##load in parameters into class
+#            self.IMS_data_fp                           = IMS_params_parsed[0 ]
+#            self.IMS_wd                                = IMS_params_parsed[1 ]
+#            
+#            self.ui.IMS_ims_reso.setText(IMS_params_parsed[2])
+#            self.ui.IMS_micro_reso.setText(IMS_params_parsed[3])
+#            self.ui.IMS_padding.setText(IMS_params_parsed[4])
+#            self.ui.IMS_textbox_fn.setText(IMS_params_parsed[5])
+#            
+#            
+#            ##update boxes
+#            if MSS_params_parsed[0 ] == 'fp':
+#                self.ui.IMS_textbox_source.setText("IMS data not set...")
+#            else:
+#                self.ui.IMS_textbox_source.setText(os.path.basename(IMS_params_parsed[0]))
+#            
+#            if IMS_params_parsed[1 ] == '':
+#                self.ui.IMS_textbox_wd.setText("working directory not set...")
+#            else:
+#                self.ui.IMS_textbox_wd.setText(IMS_params_parsed[1 ])
+#
+#            
+#            ##HDR            
+#            ##load in parameters into class
+#            self.HDR_source_fp                         = HDR_params_parsed[0 ]
+#            self.HDR_target_fp                         = HDR_params_parsed[1 ]
+#            self.HDR_wd                                = HDR_params_parsed[2 ]
+#                        	            
+#            self.ui.HDR_ims_reso.setText(HDR_params_parsed[3])
+#            self.ui.HDR_par_fp.setText(HDR_params_parsed[4])
+#            self.ui.HDR_roi_names.setText(HDR_params_parsed[5])            
+#            self.ui.HDR_textbox_fn.setText(HDR_params_parsed[6])
+#            
+#            ##update boxes
+#            if HDR_params_parsed[0 ] == 'fp':
+#                self.ui.HDR_textbox_source.setText("source image not set...")
+#            else:
+#                self.ui.HDR_textbox_source.setText(os.path.basename(HDR_params_parsed[0 ]))
+#            
+#            if HDR_params_parsed[1 ] == 'fp':
+#                self.ui.HDR_textbox_target.setText("target image not set...")
+#            else:
+#                self.ui.HDR_textbox_target.setText(os.path.basename(HDR_params_parsed[1 ]))
+#            
+#            if HDR_params_parsed[2 ] == '':
+#                self.ui.HDR_textbox_wd.setText("working directory not set...")
+#            else:
+#                self.ui.HDR_textbox_wd.setText(os.path.basename(HDR_params_parsed[2]))
             
             
 ############# SSM on click buttons
@@ -708,7 +710,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.SSM_textbox_wd.setText(wd_dir)
             self.SSM_wd = wd_dir
     
-    def SSM_register(self):
+    def SSM_register(self, params = True):
         if os.path.exists(self.SSM_source_fp) == False:
             QtWidgets.QMessageBox.question(self, 'Error!', "You haven't set the source image!", QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
@@ -735,7 +737,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 intermed = False
             
-            xml_params = self.get_params_xml()
+            #xml_params = self.get_params_xml()
             
             SSM_source_img_type = str(self.ui.SSM_source_img_type.currentText())
             SSM_target_img_type1 = str(self.ui.SSM_target_img_type1.currentText())
@@ -745,24 +747,87 @@ class MainWindow(QtWidgets.QMainWindow):
             target1_res = str(self.ui.SSM_tgt1_reso.text())
             target2_res = str(self.ui.SSM_tgt2_reso.text())
             
-            reg_model1 = str(self.ui.SSM_Reg_model1.currentText())
+            reg_model1 = str(self.ui.SSM_Reg_model1.currentText())   
+            if reg_model1 == 'import...':
+                reg_model1 = self.openFileNameDialog()
+                
             reg_model2 = str(self.ui.SSM_Reg_model2.currentText())
-
+            if reg_model2 == 'import...':
+                reg_model2 = self.openFileNameDialog()
+            
             project_name = str(self.ui.SSM_textbox_fn.text())
             
-            print("Starting Registration...")
-            print("Project Name: " + project_name)
-                        
-            print("Registering " + os.path.basename(self.SSM_source_fp) +", image type: "+ SSM_source_img_type + " to " + os.path.basename(self.SSM_target1_fp) +", image type: "+SSM_target_img_type1)
+            ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
+
+            SSM_params = dict(
+                param_mode = 'SSM',
+                source_fp = self.SSM_source_fp, 
+                source_res = source_res, 
+                target1_fp = self.SSM_target1_fp, 
+                target1_res = target1_res, 
+                target2_fp = target2_res, 
+                target2_res = target2_res, 
+                source_mask_fp = self.SSM_src_mask_fp,
+                target1_mask_fp = self.SSM_tgt1_mask_fp, 
+                target2_mask_fp = self.SSM_tgt2_mask_fp,
+                wd = self.SSM_wd, 
+                source_img_type = SSM_source_img_type, 
+                target_img_type1 = SSM_target_img_type1, 
+                target_img_type2 = SSM_target_img_type2,
+                reg_model1 = reg_model1,
+                reg_model2 = reg_model2,
+                project_name = project_name, 
+                intermediate_output = intermed , 
+                bounding_box = self.SSM_bounding_box,
+                pass_in = ts + project_name
+            )
             
-            print("Then registering " + os.path.basename(self.SSM_target1_fp) +", image type: "+SSM_target_img_type1 + " to "+ os.path.basename(self.SSM_target2_fp) +", imasge type: "+SSM_target_img_type2)
+            with open(os.path.join(self.SSM_wd,'SSM_'+ts + project_name + '_config', 'w')) as outfile:
+                yaml.dump(SSM_params, outfile, default_flow_style=False)
             
-            print("Source -> Target 1 using registration model : " + reg_model1)
-            print("Target1 -> Target 2 using registration model : " + reg_model2)
-                   
-            register_SSM(self.SSM_source_fp, source_res, self.SSM_target1_fp,target1_res, self.SSM_target2_fp,target2_res, self.SSM_src_mask_fp, self.SSM_tgt1_mask_fp, self.SSM_tgt2_mask_fp, self.SSM_wd, SSM_source_img_type, SSM_target_img_type1, SSM_target_img_type2, reg_model1, reg_model2, project_name, xml_params, intermediate_output = intermed)
             
-            QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+#            self.SSM_source_fp, 
+#            source_res, 
+#            self.SSM_target1_fp, 
+#            target1_res, 
+#            self.SSM_target2_fp,
+#            target2_res, 
+#            self.SSM_src_mask_fp, 
+#            self.SSM_tgt1_mask_fp, 
+#            self.SSM_tgt2_mask_fp, 
+#            self.SSM_wd, 
+#            SSM_source_img_type, 
+#            SSM_target_img_type1, 
+#            SSM_target_img_type2, 
+#            reg_model1, 
+#            reg_model2, 
+#            project_name, 
+#            intermediate_output = intermed
+            
+            
+            if params == False:
+                print("Starting Registration...")
+                print("Project Name: " + project_name)
+                            
+                print("Registering " + os.path.basename(self.SSM_source_fp) +", image type: "+ SSM_source_img_type + " to " + os.path.basename(self.SSM_target1_fp) +", image type: "+SSM_target_img_type1)
+                
+                print("Then registering " + os.path.basename(self.SSM_target1_fp) +", image type: "+SSM_target_img_type1 + " to "+ os.path.basename(self.SSM_target2_fp) +", imasge type: "+SSM_target_img_type2)
+                
+                print("Source -> Target 1 using registration model : " + reg_model1)
+                print("Target1 -> Target 2 using registration model : " + reg_model2)
+                       
+                register_SSM(self.SSM_source_fp, source_res, 
+                             self.SSM_target1_fp,target1_res, 
+                             self.SSM_target2_fp,target2_res, 
+                             self.SSM_src_mask_fp, self.SSM_tgt1_mask_fp, self.SSM_tgt2_mask_fp, 
+                             self.SSM_wd, 
+                             SSM_source_img_type, SSM_target_img_type1, SSM_target_img_type2, 
+                             reg_model1, reg_model2, 
+                             project_name, 
+                             intermediate_output = intermed, bounding_box = False, 
+                             pass_in_project_name=True, pass_in = ts + project_name)
+                
+                QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
             return
         
@@ -807,7 +872,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.SSS_textbox_wd.setText(wd_dir)
             self.SSS_wd = wd_dir
         
-    def SSS_register(self):
+    def SSS_register(self, params = True):
         if os.path.exists(self.SSS_source_fp) == False:
             QtWidgets.QMessageBox.question(self, 'Error!', "You haven't set the source image!", QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
@@ -825,7 +890,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return    
         
         else:
-            xml_params = self.get_params_xml()
+            #xml_params = self.get_params_xml()
             
             SSS_source_img_type = str(self.ui.SSS_source_img_type.currentText())
             SSS_target_img_type = str(self.ui.SSS_target_img_type.currentText())
@@ -834,19 +899,44 @@ class MainWindow(QtWidgets.QMainWindow):
             target_res = str(self.ui.SSS_tgt_reso.text())
             
             reg_model1 = str(self.ui.SSS_Reg_model1.currentText())
+            if reg_model1 == 'import...':
+                reg_model1 = self.openFileNameDialog()
 
             project_name = str(self.ui.SSS_textbox_fn.text())
             
-            print("Starting Registration...")
-            print("Project Name: " + project_name)
-            
-            print("Registering " + os.path.basename(self.SSS_source_fp) +", image type: "+ SSS_source_img_type + " to " + os.path.basename(self.SSS_target_fp) +", image type: "+SSS_target_img_type)
+            ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
 
-            print("Source -> Target using registration model : " + reg_model1)
-                   
-            register_SSS(self.SSS_source_fp, source_res, self.SSS_target_fp, target_res, self.SSS_src_mask_fp, self.SSS_tgt_mask_fp, self.SSS_wd, SSS_source_img_type, SSS_target_img_type, reg_model1, project_name, xml_params)
+            SSS_params = dict(
+                param_mode = 'SSS',
+                source_fp = self.SSS_source_fp, 
+                source_res = source_res, 
+                target1_fp = self.SSS_target_fp, 
+                target1_res = target_res, 
+                source_mask_fp = self.SSS_src_mask_fp,
+                target1_mask_fp = self.SSS_tgt_mask_fp, 
+                wd = self.SSS_wd, 
+                source_img_type = SSS_source_img_type, 
+                target_img_type1 = SSS_target_img_type, 
+                reg_model1 = reg_model1,
+                project_name = project_name, 
+                bounding_box = self.SSS_bounding_box,
+                pass_in = ts + project_name
+            )
             
-            QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            with open(os.path.join(self.SSS_wd,'SSM_'+ts + project_name + '_config', 'w')) as outfile:
+                yaml.dump(SSS_params, outfile, default_flow_style=False)
+            
+            if params == False:
+                print("Starting Registration...")
+                print("Project Name: " + project_name)
+                
+                print("Registering " + os.path.basename(self.SSS_source_fp) +", image type: "+ SSS_source_img_type + " to " + os.path.basename(self.SSS_target_fp) +", image type: "+SSS_target_img_type)
+    
+                print("Source -> Target using registration model : " + reg_model1)
+                       
+                register_SSS(self.SSS_source_fp, source_res, self.SSS_target_fp, target_res, self.SSS_src_mask_fp, self.SSS_tgt_mask_fp, self.SSS_wd, SSS_source_img_type, SSS_target_img_type, reg_model1, project_name, pass_in_project_name=True,pass_in = ts + project_name)
+                
+                QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
             return
 
@@ -909,7 +999,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return    
         
         else:
-            xml_params = self.get_params_xml()
+            #xml_params = self.get_params_xml()
             
             if self.ui.MSS_intermediate_export.isChecked() == True:
                 intermed = True
@@ -924,8 +1014,37 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
             reg_model1 = str(self.ui.MSS_Reg_model1.currentText())
-
+            if reg_model1 == 'import...':
+                reg_model1 = self.openFileNameDialog()
+            
+            if reg_model1 == 'nl':
+                QtWidgets.QMessageBox.question(self, 'Warning...', "You have selected a non-linear transformation for initalization. This is not recommended.", QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            
+            
             project_name = str(self.ui.MSS_textbox_fn.text())
+            
+            ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
+
+            MSS_params = dict(
+                param_mode = 'MSS',
+                source_fp = self.MSS_source_fp, 
+                source_res = source_res, 
+                target1_fp = self.MSS_target_fp, 
+                target1_res = target_res, 
+                source_mask_fp = self.MSS_src_mask_fp,
+                target1_mask_fp = self.MSS_tgt_mask_fp, 
+                wd = self.MSS_wd, 
+                source_img_type = MSS_source_img_type, 
+                target_img_type1 = MSS_target_img_type, 
+                reg_model1 = reg_model1,
+                project_name = project_name, 
+                bounding_box = self.MSS_bounding_box,
+                pass_in = ts + project_name
+            )
+            
+            with open(os.path.join(self.MSS_wd,'SSM_'+ts + project_name + '_config', 'w')) as outfile:
+                yaml.dump(MSS_params, outfile, default_flow_style=False)
+            
             
             print("Starting Registration...")
             print("Project Name: " + project_name)
@@ -934,7 +1053,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             print("Source -> Target using registration model : " + reg_model1)
                    
-            register_MSS(self.MSS_source_fp,source_res, self.MSS_target_fp,target_res, self.MSS_src_mask_fp, self.MSS_tgt_mask_fp, self.MSS_wd, MSS_source_img_type, MSS_target_img_type, reg_model1, project_name, xml_params, intermediate_output = intermed)
+            register_MSS(self.MSS_source_fp,source_res, self.MSS_target_fp,target_res, self.MSS_src_mask_fp, self.MSS_tgt_mask_fp, self.MSS_wd, MSS_source_img_type, MSS_target_img_type, reg_model1, project_name, intermediate_output = intermed, pass_in_project_name=True, pass_in = ts + project_name)
             
             QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
@@ -1086,8 +1205,12 @@ class MainWindow(QtWidgets.QMainWindow):
             target2_res = str(self.ui.MSM_tgt2_reso.text())
             
             reg_model1 = str(self.ui.MSM_Reg_model1.currentText())
+            if reg_model1 == 'import...':
+                reg_model1 = self.openFileNameDialog()
             reg_model2 = str(self.ui.MSM_Reg_model2.currentText())
-
+            
+            if reg_model2 == 'import...':
+                reg_model2 = self.openFileNameDialog()
             project_name = str(self.ui.MSM_textbox_fn.text())
             
             print("Starting Registration...")

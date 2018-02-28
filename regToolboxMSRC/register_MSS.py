@@ -19,7 +19,8 @@ def register_MSS(source_fp, source_res,
                  source_img_type, target_img_type,
                  reg_model,
                  project_name,
-                 return_image = False, intermediate_output = False, bounding_box = False):
+                 return_image = False, intermediate_output = False, bounding_box = False,
+                 pass_in_project_name=False, pass_in= None):
 
     
     #set up output information
