@@ -12,15 +12,10 @@ from regToolboxMSRC.register_MSM import register_MSM
 from regToolboxMSRC.register_SSM import register_SSM
 from regToolboxMSRC.register_SSS import register_SSS
 from regToolboxMSRC.register_MSS import register_MSS
-
-#from regToolboxMSRC import register_MSS, register_SSM, register_MSM, register_SSS,
-
 from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import IMS_pixel_maps
 from regToolboxMSRC.utils.flx_utils import bruker_output_xmls
 import SimpleITK as sitk
-#import xml.etree.ElementTree as ET
-#import xml.dom.minidom
 import pkg_resources
 import time
 import datetime
@@ -343,13 +338,19 @@ class MainWindow(QtWidgets.QMainWindow):
             target1_res = str(self.ui.SSM_tgt1_reso.text())
             target2_res = str(self.ui.SSM_tgt2_reso.text())
 
-            self.SSM_reg_model1 = str(self.ui.SSM_Reg_model1.currentText())
-            if self.SSM_reg_model1 == 'import...':
+            if self.ui.SSM_Reg_model1.currentText() == 'import...' and self.SSM_reg_model1 == 'affine':
                 self.SSM_reg_model1 = self.openFileNameDialog()
+            elif self.ui.SSM_Reg_model1.currentText() == 'import...' and self.SSM_reg_model1 != 'affine':
+                self.SSM_reg_model1 = self.SSM_reg_model1
+            else:
+                self.SSM_reg_model1 = self.ui.SSM_Reg_model1.currentText()
 
-            self.SSM_reg_model2 = str(self.ui.SSM_Reg_model2.currentText())
-            if self.SSM_reg_model2 == 'import...':
+            if self.ui.SSM_Reg_model2.currentText() == 'import...' and self.SSM_reg_model2 == 'affine':
                 self.SSM_reg_model2 = self.openFileNameDialog()
+            elif self.ui.SSM_Reg_model2.currentText() == 'import...' and self.SSM_reg_model2 != 'affine':
+                self.SSM_reg_model2 = self.SSM_reg_model2
+            else:
+                self.SSM_reg_model2 = self.ui.SSM_Reg_model2.currentText()
 
             project_name = str(self.ui.SSM_textbox_fn.text())
 
@@ -371,7 +372,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 target_img_type1 = SSM_target_img_type1,
                 target_img_type2 = SSM_target_img_type2,
                 reg_model1 = self.SSM_reg_model1,
+                ui_reg_model1 = self.ui.SSM_Reg_model1.currentText(),
                 reg_model2 = self.SSM_reg_model2,
+                ui_reg_model2 = self.ui.SSM_Reg_model2.currentText(),
                 project_name = project_name,
                 intermediate_output = intermed ,
                 bounding_box = self.SSM_bounding_box,
@@ -494,9 +497,12 @@ class MainWindow(QtWidgets.QMainWindow):
             source_res = str(self.ui.SSS_src_reso.text())
             target_res = str(self.ui.SSS_tgt_reso.text())
 
-            self.SSS_reg_model1 = str(self.ui.SSS_Reg_model1.currentText())
-            if self.SSS_reg_model1 == 'import...':
+            if self.ui.SSS_Reg_model1.currentText() == 'import...' and self.SSS_reg_model1 == 'affine':
                 self.SSS_reg_model1 = self.openFileNameDialog()
+            elif self.ui.SSS_Reg_model1.currentText() == 'import...' and self.SSS_reg_model1 != 'affine':
+                self.SSS_reg_model1 = self.SSS_reg_model1
+            else:
+                self.SSS_reg_model1 = self.ui.SSS_Reg_model1.currentText()
 
             project_name = str(self.ui.SSS_textbox_fn.text())
 
@@ -514,6 +520,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 source_img_type = SSS_source_img_type,
                 target_img_type = SSS_target_img_type,
                 reg_model1 = reg_model1,
+                ui_reg_model1 = self.ui.SSS_Reg_model1.currentText(),
                 project_name = project_name,
                 bounding_box = self.SSS_bounding_box,
                 pass_in = ts + project_name
@@ -617,9 +624,12 @@ class MainWindow(QtWidgets.QMainWindow):
             target_res = str(self.ui.MSS_tgt_reso.text())
 
 
-            self.MSS_reg_model1 = str(self.ui.MSS_Reg_model1.currentText())
-            if self.MSS_reg_model1 == 'import...':
+            if self.ui.MSS_Reg_model1.currentText() == 'import...' and self.MSS_reg_model1 == 'affine':
                 self.MSS_reg_model1 = self.openFileNameDialog()
+            elif self.ui.MSS_Reg_model1.currentText() == 'import...' and self.MSS_reg_model1 != 'affine':
+                self.MSS_reg_model1 = self.MSS_reg_model1
+            else:
+                self.MSS_reg_model1 = self.ui.MSS_Reg_model1.currentText()
 
             if self.MSS_reg_model1 == 'nl':
                 QtWidgets.QMessageBox.question(self, 'Warning...', "You have selected a non-linear transformation for initalization. This is not recommended.", QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
@@ -641,6 +651,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 source_img_type = MSS_source_img_type,
                 target_img_type = MSS_target_img_type,
                 reg_model1 = reg_model1,
+                ui_reg_model1 = self.ui.MSS_Reg_model1.currentText(),
                 project_name = project_name,
                 bounding_box = self.MSS_bounding_box,
                 pass_in = ts + project_name
@@ -816,13 +827,19 @@ class MainWindow(QtWidgets.QMainWindow):
             target1_res = str(self.ui.MSM_tgt1_reso.text())
             target2_res = str(self.ui.MSM_tgt2_reso.text())
 
-            self.MSM_reg_model1 = str(self.ui.MSM_Reg_model1.currentText())
-            if self.MSM_reg_model1 == 'import...':
+            if self.ui.MSM_Reg_model1.currentText() == 'import...' and self.MSM_reg_model1 == 'affine':
                 self.MSM_reg_model1 = self.openFileNameDialog()
+            elif self.ui.MSM_Reg_model1.currentText() == 'import...' and self.MSM_reg_model1 != 'affine':
+                self.MSM_reg_model1 = self.MSM_reg_model1
+            else:
+                self.MSM_reg_model1 = self.ui.MSM_Reg_model1.currentText()
 
-            self.MSM_reg_model2 = str(self.ui.MSM_Reg_model2.currentText())
-            if self.MSM_reg_model2 == 'import...':
+            if self.ui.MSM_Reg_model2.currentText() == 'import...' and self.MSM_reg_model2 == 'affine':
                 self.MSM_reg_model2 = self.openFileNameDialog()
+            elif self.ui.MSM_Reg_model2.currentText() == 'import...' and self.MSM_reg_model2 != 'affine':
+                self.MSM_reg_model2 = self.MSM_reg_model2
+            else:
+                self.MSM_reg_model2 = self.ui.MSM_Reg_model2.currentText()
 
             project_name = str(self.ui.MSM_textbox_fn.text())
 
@@ -844,7 +861,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 target_img_type1 = MSM_target_img_type1,
                 target_img_type2 = MSM_target_img_type2,
                 reg_model1 = reg_model1,
+                ui_reg_model1 = self.ui.MSM_Reg_model1.currentText(),
                 reg_model2 = reg_model2,
+                ui_reg_model2 = self.ui.MSM_Reg_model2.currentText(),
                 project_name = project_name,
                 intermediate_output = intermed ,
                 bounding_box = self.MSM_bounding_box,
@@ -1036,20 +1055,29 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
 
-            self.MSM_source_fp = param_map['source_fp'],
+            self.MSM_source_fp = param_map['source_fp']
+            self.ui.MSM_textbox_source.setText(os.path.basename(param_map['source_fp']))
+
             self.ui.MSM_src_reso.setText(param_map['source_res'])
 
-            self.MSM_target1_fp = param_map['target1_fp'],
+            self.MSM_target1_fp = param_map['target1_fp']
+            self.ui.MSM_textbox_target1.setText(os.path.basename(param_map['target1_fp']))
+
             self.ui.MSM_tgt1_reso.setText(param_map['target1_res'])
 
-            self.MSM_target2_fp = param_map['target2_fp'],
+            self.MSM_target2_fp = param_map['target2_fp']
+            self.ui.MSM_textbox_target2.setText(os.path.basename(param_map['target2_fp']))
+
             self.ui.MSM_tgt2_reso.setText(param_map['target2_res'])
 
-            self.MSM_src_mask_fp = param_map['source_mask_fp'],
-            self.MSM_tgt2_mask_fp = param_map['target1_mask_fp'],
-            self.MSM_tgt2_mask_fp = param_map['target2_mask_fp'],
+            self.MSM_src_mask_fp = param_map['source_mask_fp']
+            self.MSM_tgt2_mask_fp = param_map['target1_mask_fp']
+            self.MSM_tgt2_mask_fp = param_map['target2_mask_fp']
 
             self.MSM_wd = param_map['wd']
+            self.MSM_textbox_wd.setText(param_map['wd'])
+
+            self.MSM_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.SSM_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
@@ -1063,16 +1091,17 @@ class MainWindow(QtWidgets.QMainWindow):
             if index >= 0:
             	 self.ui.MSM_target_img_type2.setCurrentIndex(index)
 
-            self.SSM_reg_model1 = param_map['reg_model1']
-            index = self.ui.MSM_Reg_model1.findText(param_map['reg_model1'], QtCore.Qt.MatchFixedString)
+            index = self.ui.MSM_Reg_model1.findText(param_map['ui_reg_model1'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.MSM_source_img_type.setCurrentIndex(index)
+            	 self.ui.SSM_Reg_model1.setCurrentIndex(index)
 
+            index = self.ui.MSM_Reg_model2.findText(param_map['ui_reg_model2'], QtCore.Qt.MatchFixedString)
+            if index >= 0:
+            	 self.ui.SSM_Reg_model2.setCurrentIndex(index)
 
+            self.SSM_reg_model1 = param_map['reg_model2']
             self.SSM_reg_model2 = param_map['reg_model2']
-            index = self.ui.MSM_Reg_model2.findText(param_map['reg_model2'], QtCore.Qt.MatchFixedString)
-            if index >= 0:
-            	 self.ui.MSM_source_img_type.setCurrentIndex(index)
+
             self.ui.MSM_intermediate_export.setChecked(param_map['intermediate_output'])
 
     def SSM_oc_save_param(self):
@@ -1092,12 +1121,19 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
 
             self.SSM_source_fp = param_map['source_fp'],
+            self.ui.SSM_textbox_source.setText(os.path.basename(param_map['source_fp']))
+
             self.ui.SSM_src_reso.setText(param_map['source_res'])
+            self.ui.SSM_textbox_target1.setText(os.path.basename(param_map['target1_fp']))
 
             self.SSM_target1_fp = param_map['target1_fp'],
+            self.ui.SSM_textbox_target2.setText(os.path.basename(param_map['target2_fp']))
+
             self.ui.SSM_tgt1_reso.setText(param_map['target1_res'])
 
             self.SSM_target2_fp = param_map['target2_fp'],
+
+
             self.ui.SSM_tgt2_reso.setText(param_map['target2_res'])
 
             self.SSM_src_mask_fp = param_map['source_mask_fp'],
@@ -1105,6 +1141,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.SSM_tgt2_mask_fp = param_map['target2_mask_fp'],
 
             self.SSM_wd = param_map['wd']
+            self.SSM_textbox_wd.setText(param_map['wd'])
+
+            self.SSM_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.SSM_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
@@ -1119,13 +1158,17 @@ class MainWindow(QtWidgets.QMainWindow):
             	 self.ui.SSM_target_img_type2.setCurrentIndex(index)
 
 
-            index = self.ui.SSM_Reg_model1.findText(param_map['reg_model1'], QtCore.Qt.MatchFixedString)
+            index = self.ui.SSM_Reg_model1.findText(param_map['ui_reg_model1'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.SSM_source_img_type.setCurrentIndex(index)
+            	 self.ui.SSM_Reg_model1.setCurrentIndex(index)
 
-            index = self.ui.SSM_Reg_model2.findText(param_map['reg_model2'], QtCore.Qt.MatchFixedString)
+            index = self.ui.SSM_Reg_model2.findText(param_map['ui_reg_model2'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.SSM_source_img_type.setCurrentIndex(index)
+            	 self.ui.SSM_Reg_model2.setCurrentIndex(index)
+
+            self.SSM_reg_model1 = param_map['reg_model1']
+            self.SSM_reg_model2 = param_map['reg_model2']
+
             self.ui.SSM_intermediate_export.setChecked(param_map['intermediate_output'])
 
     def SSS_oc_save_param(self):
@@ -1144,16 +1187,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
 
-            self.SSS_source_fp = param_map['source_fp'],
+            self.SSS_source_fp = param_map['source_fp']
+            self.ui.SSS_textbox_source.setText(os.path.basename(param_map['source_fp']))
+
             self.ui.SSS_src_reso.setText(param_map['source_res'])
 
-            self.SSS_target_fp = param_map['target_fp'],
+            self.SSS_target_fp = param_map['target_fp']
+            self.ui.SSS_textbox_source.setText(os.path.basename(param_map['target_fp']))
+
             self.ui.SSS_tgt_reso.setText(param_map['target_res'])
 
-            self.SSS_src_mask_fp = param_map['source_mask_fp'],
-            self.SSS_tgt_mask_fp = param_map['target_mask_fp'],
+            self.SSS_src_mask_fp = param_map['source_mask_fp']
+            self.SSS_tgt_mask_fp = param_map['target_mask_fp']
 
             self.SSS_wd = param_map['wd']
+            self.SSS_textbox_wd.setText(param_map['wd'])
+
+            self.SSS_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.SSS_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
@@ -1164,9 +1214,12 @@ class MainWindow(QtWidgets.QMainWindow):
             	 self.ui.SSS_target_img_type.setCurrentIndex(index)
 
 
-            index = self.ui.SSS_Reg_model1.findText(param_map['reg_model1'], QtCore.Qt.MatchFixedString)
+            index = self.ui.SSS_Reg_model1.findText(param_map['ui_reg_model1'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.SSS_source_img_type.setCurrentIndex(index)
+            	 self.ui.SSS_Reg_model1.setCurrentIndex(index)
+
+            self.SSS_reg_model1 = param_map['reg_model1']
+
 
     def MSS_oc_save_param(self):
         self.MSS_register(params=True)
@@ -1184,16 +1237,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
 
-            self.MSS_source_fp = param_map['source_fp'],
+            self.MSS_source_fp = param_map['source_fp']
+            self.ui.MSS_textbox_source.setText(os.path.basename(param_map['source_fp']))
+
             self.ui.MSS_src_reso.setText(param_map['source_res'])
 
-            self.MSS_target_fp = param_map['target_fp'],
+            self.MSS_target_fp = param_map['target_fp']
+            self.ui.MSS_textbox_source.setText(os.path.basename(param_map['target_fp']))
+
             self.ui.MSS_tgt_reso.setText(param_map['target_res'])
 
-            self.MSS_src_mask_fp = param_map['source_mask_fp'],
-            self.MSS_tgt_mask_fp = param_map['target_mask_fp'],
+            self.MSS_src_mask_fp = param_map['source_mask_fp']
+            self.MSS_tgt_mask_fp = param_map['target_mask_fp']
 
             self.MSS_wd = param_map['wd']
+            self.MSS_textbox_wd.setText(param_map['wd'])
+
+            self.MSS_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.MSS_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
@@ -1203,9 +1263,11 @@ class MainWindow(QtWidgets.QMainWindow):
             if index >= 0:
             	 self.ui.MSS_target_img_type.setCurrentIndex(index)
 
-            index = self.ui.MSS_Reg_model1.findText(param_map['reg_model1'], QtCore.Qt.MatchFixedString)
+            index = self.ui.MSS_Reg_model1.findText(param_map['ui_reg_model1'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.MSS_source_img_type.setCurrentIndex(index)
+            	 self.ui.MSS_Reg_model1.setCurrentIndex(index)
+
+            self.MSS_reg_model1 = param_map['reg_model1']
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

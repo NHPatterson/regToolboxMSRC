@@ -24,6 +24,59 @@ def register_MSM(source_fp, source_res,
                  project_name,
                  return_image = False, intermediate_output = False, bounding_box = False,
                  pass_in_project_name=False, pass_in= None):
+    """Short summary.
+
+    Parameters
+    ----------
+    source_fp : type
+        Description of parameter `source_fp`.
+    source_res : type
+        Description of parameter `source_res`.
+    target1_fp : type
+        Description of parameter `target1_fp`.
+    target1_res : type
+        Description of parameter `target1_res`.
+    target2_fp : type
+        Description of parameter `target2_fp`.
+    target2_res : type
+        Description of parameter `target2_res`.
+    source_mask_fp : type
+        Description of parameter `source_mask_fp`.
+    target1_mask_fp : type
+        Description of parameter `target1_mask_fp`.
+    target2_mask_fp : type
+        Description of parameter `target2_mask_fp`.
+    wd : type
+        Description of parameter `wd`.
+    source_img_type : type
+        Description of parameter `source_img_type`.
+    target1_img_type : type
+        Description of parameter `target1_img_type`.
+    target2_img_type : type
+        Description of parameter `target2_img_type`.
+    reg_model1 : type
+        Description of parameter `reg_model1`.
+    reg_model2 : type
+        Description of parameter `reg_model2`.
+    project_name : type
+        Description of parameter `project_name`.
+    return_image : type
+        Description of parameter `return_image`.
+    intermediate_output : type
+        Description of parameter `intermediate_output`.
+    bounding_box : type
+        Description of parameter `bounding_box`.
+    pass_in_project_name : type
+        Description of parameter `pass_in_project_name`.
+    pass_in : type
+        Description of parameter `pass_in`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
 
 
     #set up output information
