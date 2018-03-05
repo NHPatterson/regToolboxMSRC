@@ -136,7 +136,7 @@ def register_MSM(source_fp, source_res,
     if target1_mask_fp != None:
         target1_mask_fp = transform_mc_image_sitk(target1_mask_fp, tgt1_tgt2_tform_init, target1_res, from_file=True, is_binary_mask = True)
 
-        tgt1_tgt2_tform_nl, init_img = register_elx_(init_img, target2.image, reg_param_nl, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= pass_in + "_tforms_tgt1_tgt2_nl", output_fn = pass_in +"tgt1_tgt2_nl.txt", return_image = True, logging = True, bounding_box = False)
+    tgt1_tgt2_tform_nl, init_img = register_elx_(init_img, target2.image, reg_param_nl, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= pass_in + "_tforms_tgt1_tgt2_nl", output_fn = pass_in +"tgt1_tgt2_nl.txt", return_image = True, logging = True, bounding_box = False)
 
 
 #    if bounding_box == True and os.path.exists(target2_mask_fp):
@@ -147,9 +147,9 @@ def register_MSM(source_fp, source_res,
     tformed_im = transform_mc_image_sitk(tformed_im, tgt1_tgt2_tform_nl, target2_res, from_file=False)
 
     if check_im_size_fiji(tformed_im) == True:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_tgt1_tgt2.mha", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_tgt1_tgt2.mha"), True)
     else:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_tgt1_tgt2.tif", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_tgt1_tgt2.tif"), True)
 
     ##source to tgt2
     tformed_im = transform_mc_image_sitk(source_fp, src_tgt1_tform, source_res)
@@ -160,9 +160,9 @@ def register_MSM(source_fp, source_res,
 #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
 
     if check_im_size_fiji(tformed_im) == True:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt2.mha", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_src_tgt2.mha"), True)
     else:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt2.tif", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_src_tgt2.tif"), True)
 
     return
 

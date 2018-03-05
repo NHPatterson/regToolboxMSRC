@@ -362,7 +362,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 source_res = source_res,
                 target1_fp = self.SSM_target1_fp,
                 target1_res = target1_res,
-                target2_fp = target2_res,
+                target2_fp = self.SSM_target2_fp,
                 target2_res = target2_res,
                 source_mask_fp = self.SSM_src_mask_fp,
                 target1_mask_fp = self.SSM_tgt1_mask_fp,
@@ -526,7 +526,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass_in = ts + project_name
             )
 
-            with open(os.path.join(self.SSS_wd,'SSM_'+ts + project_name + '_config.yaml'), 'w') as outfile:
+            with open(os.path.join(self.SSS_wd,'SSS_'+ts + project_name + '_config.yaml'), 'w') as outfile:
                 yaml.dump(SSS_params, outfile, default_flow_style=False)
 
             if params == False:
@@ -592,7 +592,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.MSS_wd = wd_dir
 
 
-    def MSS_register(self):
+    def MSS_register(self, params = True):
         if os.path.exists(self.MSS_source_fp) == False:
             QtWidgets.QMessageBox.question(self, 'Error!', "You haven't set the source image!", QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
@@ -660,26 +660,26 @@ class MainWindow(QtWidgets.QMainWindow):
             with open(os.path.join(self.MSS_wd,'MSS_'+ts + project_name + '_config.yaml'), 'w') as outfile:
                 yaml.dump(MSS_params, outfile, default_flow_style=False)
 
+            if params == False:
+                print("Starting Registration...")
+                print("Project Name: " + project_name)
 
-            print("Starting Registration...")
-            print("Project Name: " + project_name)
+                print("Registering " + os.path.basename(self.MSS_source_fp) +", image type: "+ MSS_source_img_type + " to " + os.path.basename(self.MSS_target_fp) +", image type: "+MSS_target_img_type)
 
-            print("Registering " + os.path.basename(self.MSS_source_fp) +", image type: "+ MSS_source_img_type + " to " + os.path.basename(self.MSS_target_fp) +", image type: "+MSS_target_img_type)
+                print("Source -> Target using registration model : " + self.MSS_reg_model1)
 
-            print("Source -> Target using registration model : " + self.MSS_reg_model1)
+                register_MSS(self.MSS_source_fp,source_res,
+                self.MSS_target_fp,target_res,
+                self.MSS_src_mask_fp, self.MSS_tgt_mask_fp,
+                self.MSS_wd,
+                MSS_source_img_type, MSS_target_img_type,
+                self.MSS_reg_model1,
+                project_name,
+                intermediate_output = intermed,
+                pass_in_project_name=True, pass_in = ts + project_name)
 
-            register_MSS(self.MSS_source_fp,source_res,
-            self.MSS_target_fp,target_res,
-            self.MSS_src_mask_fp, self.MSS_tgt_mask_fp,
-            self.MSS_wd,
-            MSS_source_img_type, MSS_target_img_type,
-            self.MSS_reg_model1,
-            project_name,
-            intermediate_output = intermed,
-            pass_in_project_name=True, pass_in = ts + project_name)
-
-            QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
-            return
+                QtWidgets.QMessageBox.question(self, 'Registration Finished', "Check output directory for registered images",QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                return
 
 
 ############# IMS on click buttons
@@ -851,7 +851,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 source_res = source_res,
                 target1_fp = self.MSM_target1_fp,
                 target1_res = target1_res,
-                target2_fp = target2_res,
+                target2_fp = self.MSM_target2_fp,
                 target2_res = target2_res,
                 source_mask_fp = self.MSM_src_mask_fp,
                 target1_mask_fp = self.MSM_tgt1_mask_fp,
@@ -1075,32 +1075,32 @@ class MainWindow(QtWidgets.QMainWindow):
             self.MSM_tgt2_mask_fp = param_map['target2_mask_fp']
 
             self.MSM_wd = param_map['wd']
-            self.MSM_textbox_wd.setText(param_map['wd'])
+            self.ui.MSM_textbox_wd.setText(param_map['wd'])
 
-            self.MSM_textbox_fn.setText(param_map['project_name'])
+            self.ui.MSM_textbox_fn.setText(param_map['project_name'])
 
-            index = self.ui.SSM_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
+            index = self.ui.MSM_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
             	 self.ui.MSM_source_img_type.setCurrentIndex(index)
 
-            index = self.ui.SSM_target_img_type1.findText(param_map['target_img_type1'], QtCore.Qt.MatchFixedString)
+            index = self.ui.MSM_target_img_type1.findText(param_map['target_img_type1'], QtCore.Qt.MatchFixedString)
             if index >= 0:
             	 self.ui.MSM_target_img_type1.setCurrentIndex(index)
 
-            index = self.ui.SSM_target_img_type2.findText(param_map['target_img_type2'], QtCore.Qt.MatchFixedString)
+            index = self.ui.MSM_target_img_type2.findText(param_map['target_img_type2'], QtCore.Qt.MatchFixedString)
             if index >= 0:
             	 self.ui.MSM_target_img_type2.setCurrentIndex(index)
 
             index = self.ui.MSM_Reg_model1.findText(param_map['ui_reg_model1'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.SSM_Reg_model1.setCurrentIndex(index)
+            	 self.ui.MSM_Reg_model1.setCurrentIndex(index)
 
             index = self.ui.MSM_Reg_model2.findText(param_map['ui_reg_model2'], QtCore.Qt.MatchFixedString)
             if index >= 0:
-            	 self.ui.SSM_Reg_model2.setCurrentIndex(index)
+            	 self.ui.MSM_Reg_model2.setCurrentIndex(index)
 
-            self.SSM_reg_model1 = param_map['reg_model2']
-            self.SSM_reg_model2 = param_map['reg_model2']
+            self.MSM_reg_model1 = param_map['reg_model2']
+            self.MSM_reg_model2 = param_map['reg_model2']
 
             self.ui.MSM_intermediate_export.setChecked(param_map['intermediate_output'])
 
@@ -1141,9 +1141,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.SSM_tgt2_mask_fp = param_map['target2_mask_fp']
 
             self.SSM_wd = param_map['wd']
-            self.SSM_textbox_wd.setText(param_map['wd'])
+            self.ui.SSM_textbox_wd.setText(param_map['wd'])
 
-            self.SSM_textbox_fn.setText(param_map['project_name'])
+            self.ui.SSM_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.SSM_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
@@ -1193,17 +1193,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.SSS_src_reso.setText(param_map['source_res'])
 
             self.SSS_target_fp = param_map['target_fp']
-            self.ui.SSS_textbox_source.setText(os.path.basename(param_map['target_fp']))
+            self.ui.SSS_textbox_target.setText(os.path.basename(param_map['target_fp']))
 
             self.ui.SSS_tgt_reso.setText(param_map['target_res'])
 
             self.SSS_src_mask_fp = param_map['source_mask_fp']
-            self.SSS_tgt_mask_fp = param_map['target_mask_fp']
+            self.SSS_tgt_mask_fp = param_map['target1_mask_fp']
 
             self.SSS_wd = param_map['wd']
-            self.SSS_textbox_wd.setText(param_map['wd'])
+            self.ui.SSS_textbox_wd.setText(param_map['wd'])
 
-            self.SSS_textbox_fn.setText(param_map['project_name'])
+            self.ui.SSS_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.SSS_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:
@@ -1243,7 +1243,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.MSS_src_reso.setText(param_map['source_res'])
 
             self.MSS_target_fp = param_map['target_fp']
-            self.ui.MSS_textbox_source.setText(os.path.basename(param_map['target_fp']))
+            self.ui.MSS_textbox_target.setText(os.path.basename(param_map['target_fp']))
 
             self.ui.MSS_tgt_reso.setText(param_map['target_res'])
 
@@ -1251,9 +1251,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.MSS_tgt_mask_fp = param_map['target_mask_fp']
 
             self.MSS_wd = param_map['wd']
-            self.MSS_textbox_wd.setText(param_map['wd'])
+            self.ui.MSS_textbox_wd.setText(param_map['wd'])
 
-            self.MSS_textbox_fn.setText(param_map['project_name'])
+            self.ui.MSS_textbox_fn.setText(param_map['project_name'])
 
             index = self.ui.MSS_source_img_type.findText(param_map['source_img_type'], QtCore.Qt.MatchFixedString)
             if index >= 0:

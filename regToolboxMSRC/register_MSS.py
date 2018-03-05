@@ -77,9 +77,9 @@ def register_MSS(source_fp, source_res,
 #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
 
     if check_im_size_fiji(tformed_im) == True:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt.mha", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_src_tgt_nl.mha"), True)
     else:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt.tif", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_src_tgt_nl.tif"), True)
 
     return
 

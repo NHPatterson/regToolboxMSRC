@@ -75,9 +75,9 @@ def register_SSM(source_fp, source_res,
 #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
 #
     if check_im_size_fiji(tformed_im) == True:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_tgt1_tgt2.mha", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(),opdir, project_name + "_tgt1_tgt2.mha"), True)
     else:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_tgt1_tgt2.tif", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(),opdir, project_name + "_tgt1_tgt2.tif"), True)
 
     ##source to tgt2
     tformed_im = transform_mc_image_sitk(source_fp, src_tgt1_tform, source_res)
@@ -87,9 +87,9 @@ def register_SSM(source_fp, source_res,
 #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
 
     if check_im_size_fiji(tformed_im) == True:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt2.mha", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_src_tgt2.mha"), True)
     else:
-        sitk.WriteImage(tformed_im, opdir + project_name + "_src_tgt2.tif", True)
+        sitk.WriteImage(tformed_im, os.path.join(os.getcwd(), opdir, project_name + "_src_tgt2.tif"), True)
 
     return
 
