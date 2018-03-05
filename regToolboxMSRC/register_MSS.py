@@ -22,7 +22,65 @@ def register_MSS(source_fp, source_res,
                  return_image = False, intermediate_output = False, bounding_box = False,
                  pass_in_project_name=False, pass_in= None):
 
+    """This function performs linear then non-linear registration between 2
+    images from serial tissue sections.
 
+    Parameters
+    ----------
+    source_fp : str
+        String file path to source image
+    source_res : float
+        Image resolution of source image, specified in microns / pixel
+    target_fp : str
+        String file path to first target image
+    target_res : float
+        Image resolution of first target image image, specified in microns / pixel
+    source_mask_fp : str or SimpleITK.Image()
+        String file path to binary mask for source image or SimpleITK.Image()
+        Using a mask image from memory is helpful in some registration routines
+        where there are multiple registrations and the mask must be transformed
+        to continue.
+    target_mask_fp : str or SimpleITK.Image()
+        String file path to binary mask for target image or SimpleITK.Image()
+    wd : str
+        String directory path to where outputs will go
+    source_img_type : str
+        string of either 'RGB_l' or 'AF' for source image
+        'RGB_l' specifices an RGB image with a light background,
+        like brightfield microscopy.
+        'AF' specifices a multilayer fluorescence image or RGB image with
+        a dark background.
+    target_img_type : str
+        string of either 'RGB_l' or 'AF' for first target image
+    reg_model1 : str or file path to Sitk.ParameterMap()
+        The elastix parameter file for the initial registration between source
+        image and target image
+    project_name : str
+        String prepended to file outputs
+    return_image : boolean
+        Whether or not to return the from IMS_registrations.
+        This is required when there is an initial rigid transformation followed
+        by a non-linear transformation on the previously aligned image.
+        It is defaulted internally to the appropriate setting.
+    intermediate_output : boolean
+        Whether or not to write the intermediate initial registration image
+        or only the final non-linears.
+    bounding_box : boolean
+        Whether to use the mask as a bounding_box to crop the area of interest
+        This has been useful when registering a small image to a very large one
+        where the registration initializes poor.
+        This setting will find the transformation on the crop, then paste the
+        registered image back to the original dimensions of the target image.
+    pass_in_project_name : boolean
+        This parameter is used to pass in the project name from the reg_tlbx_gui
+    pass_in : str
+        Time stamped name fragment inherited from the GUI
+
+    Returns
+    -------
+        The function writes the transformation files and images in the specified
+        working directory.
+    """
     #set up output information
     if pass_in_project_name == False:
         ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')

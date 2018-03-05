@@ -24,6 +24,9 @@ import yaml
 class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
+        '''Initializes the default parameters and links up GUI buttons
+        to functions.
+        '''
         super(MainWindow, self).__init__()
         self.SSM_source_fp = 'fp'
         self.SSM_target1_fp = 'fp'
@@ -232,12 +235,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.MSS_load_params.clicked.connect(self.MSS_oc_load_param)
 
 ############# file path functions
-    def openFileNameDialog(self):
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Open file...", "","All Files (*);;Python Files (*.tif);;Tiff Files (*.tif);;YAML Files (*.yaml)")
+    def openFileNameDialog(self, dialog_str = ''):
+        if dialog_str == '':
+            dialog_str = 'Open file...'
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, text_str, "","All Files (*);;Tiff Files (*.tif);;YAML Files (*.yaml)")
         return(file_name)
 
-    def openFileDirDialog(self):
-        wd = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory...")
+    def openFileDirDialog(self, dialog_str = ''):
+        if dialog_str == '':
+            dialog_str = "Select Directory..."
+        wd = QtWidgets.QFileDialog.getExistingDirectory(self, dialog_str )
         return(wd)
 
     def saveFileDialog(self):
