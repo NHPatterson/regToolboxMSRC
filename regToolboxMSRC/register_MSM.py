@@ -25,7 +25,8 @@ def register_MSM(source_fp, source_res,
                  return_image = False, intermediate_output = False, bounding_box = False,
                  pass_in_project_name=False, pass_in= None):
     """This function performs registration between 2 images from the same
-    tissue section to a third image from a serial section.
+    tissue section to a third image from a serial section. The initial
+    registrations are linear and the final is fixed as non-linear.
 
     Parameters
     ----------

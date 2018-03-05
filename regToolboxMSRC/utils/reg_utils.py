@@ -16,6 +16,8 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom
 import pkg_resources
 
+
+
 class reg_image(object):
     '''
         Container class for image meta data and processing between ITK and cv2
@@ -227,7 +229,10 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     :return type: SimpleITK parameter map and SimpleITK image
 
     '''
-    selx = sitk.ElastixImageFilter()
+    try:
+        selx = sitk.SimpleElastix()
+    except:
+        selx = sitk.ElastixImageFilter()
 
     if logging == True:
         selx.LogToConsoleOn()
@@ -365,7 +370,12 @@ def check_im_size_fiji(image):
     return impixels > 10**9
 
 def transform_image(moving, transformationMap):
-    transformix = sitk.TransformixImageFilter()
+
+    try:
+        selx = sitk.SimpleTransformix()
+    except:
+        selx = sitk.TransformixImageFilter()
+
     transformix.SetMovingImage(moving)
     transformix.SetTransformParameterMap(transformationMap)
     transformix.LogToConsoleOff()
