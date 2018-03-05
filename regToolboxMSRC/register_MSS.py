@@ -29,6 +29,8 @@ def register_MSS(source_fp, source_res,
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(),ts+ project_name+"_images"))
         opdir = ts + project_name + "_images"
+        pass_in = ts + project_name
+
     else:
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(),pass_in+"_images"))
@@ -46,7 +48,7 @@ def register_MSS(source_fp, source_res,
     print(project_name +": target image loaded")
 
     #registration
-    src_tgt_tform_init, init_img = register_elx_(source.image, target.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target_mask_fp, output_dir= ts + project_name + "_tforms_src_tgt_init", output_fn = ts + project_name +"_init_src_tgt_init.txt", return_image = True, logging = True, bounding_box=False)
+    src_tgt_tform_init, init_img = register_elx_(source.image, target.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target_mask_fp, output_dir= pass_in + "_tforms_src_tgt_init", output_fn = pass_in +"_init_src_tgt_init.txt", return_image = True, logging = True, bounding_box=False)
 
 
     #transform result and save output
@@ -64,7 +66,7 @@ def register_MSS(source_fp, source_res,
     if source_mask_fp != None:
         source_mask_fp = transform_mc_image_sitk(source_mask_fp, src_tgt_tform_init, source_res, from_file=True, is_binary_mask = True)
 
-    src_tgt_tform_nl = register_elx_(init_img, target.image, reg_param_nl, moving_mask = source_mask_fp,  fixed_mask = target_mask_fp, output_dir= ts + project_name + "_tforms_src_tgt_nl", output_fn = ts + project_name +"init_src_tgt_nl.txt", return_image = False ,logging = True, bounding_box = False)
+    src_tgt_tform_nl = register_elx_(init_img, target.image, reg_param_nl, moving_mask = source_mask_fp,  fixed_mask = target_mask_fp, output_dir= pass_in + "_tforms_src_tgt_nl", output_fn = pass_in +"init_src_tgt_nl.txt", return_image = False ,logging = True, bounding_box = False)
 
 
     ##source to tgt2

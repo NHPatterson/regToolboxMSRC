@@ -65,7 +65,7 @@ def register_SSM(source_fp, source_res,
     print(project_name +": target 2 image loaded")
 
     ##get target 2 image metaData in case of bounding box masking:
-    tgt1_tgt2_tform = register_elx_(target1.image, target2.image, reg_param2, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= ts + project_name + "_tforms_tgt1_tgt2", output_fn = ts + project_name +"init_tgt1_tgt2.txt", return_image = False ,logging = True, bounding_box = False)
+    tgt1_tgt2_tform = register_elx_(target1.image, target2.image, reg_param2, moving_mask = target1_mask_fp,  fixed_mask = target2_mask_fp, output_dir= pass_in + "_tforms_tgt1_tgt2", output_fn = pass_in +"init_tgt1_tgt2.txt", return_image = False ,logging = True, bounding_box = False)
 
 
     #transform result and save output

@@ -519,7 +519,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 wd = self.SSS_wd,
                 source_img_type = SSS_source_img_type,
                 target_img_type = SSS_target_img_type,
-                reg_model1 = reg_model1,
+                reg_model1 = self.SSS_reg_model1,
                 ui_reg_model1 = self.ui.SSS_Reg_model1.currentText(),
                 project_name = project_name,
                 bounding_box = self.SSS_bounding_box,
@@ -650,7 +650,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 wd = self.MSS_wd,
                 source_img_type = MSS_source_img_type,
                 target_img_type = MSS_target_img_type,
-                reg_model1 = reg_model1,
+                reg_model1 = self.MSS_reg_model1,
                 ui_reg_model1 = self.ui.MSS_Reg_model1.currentText(),
                 project_name = project_name,
                 bounding_box = self.MSS_bounding_box,
@@ -860,9 +860,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 source_img_type = MSM_source_img_type,
                 target_img_type1 = MSM_target_img_type1,
                 target_img_type2 = MSM_target_img_type2,
-                reg_model1 = reg_model1,
+                reg_model1 = self.MSM_reg_model1,
                 ui_reg_model1 = self.ui.MSM_Reg_model1.currentText(),
-                reg_model2 = reg_model2,
+                reg_model2 = self.MSM_reg_model2,
                 ui_reg_model2 = self.ui.MSM_Reg_model2.currentText(),
                 project_name = project_name,
                 intermediate_output = intermed ,
@@ -1120,25 +1120,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
 
-            self.SSM_source_fp = param_map['source_fp'],
+            self.SSM_source_fp = param_map['source_fp']
             self.ui.SSM_textbox_source.setText(os.path.basename(param_map['source_fp']))
 
             self.ui.SSM_src_reso.setText(param_map['source_res'])
             self.ui.SSM_textbox_target1.setText(os.path.basename(param_map['target1_fp']))
 
-            self.SSM_target1_fp = param_map['target1_fp'],
+            self.SSM_target1_fp = param_map['target1_fp']
             self.ui.SSM_textbox_target2.setText(os.path.basename(param_map['target2_fp']))
 
             self.ui.SSM_tgt1_reso.setText(param_map['target1_res'])
 
-            self.SSM_target2_fp = param_map['target2_fp'],
+            self.SSM_target2_fp = param_map['target2_fp']
 
 
             self.ui.SSM_tgt2_reso.setText(param_map['target2_res'])
 
-            self.SSM_src_mask_fp = param_map['source_mask_fp'],
-            self.SSM_tgt2_mask_fp = param_map['target1_mask_fp'],
-            self.SSM_tgt2_mask_fp = param_map['target2_mask_fp'],
+            self.SSM_src_mask_fp = param_map['source_mask_fp']
+            self.SSM_tgt2_mask_fp = param_map['target1_mask_fp']
+            self.SSM_tgt2_mask_fp = param_map['target2_mask_fp']
 
             self.SSM_wd = param_map['wd']
             self.SSM_textbox_wd.setText(param_map['wd'])

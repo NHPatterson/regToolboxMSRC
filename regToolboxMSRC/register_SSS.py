@@ -30,6 +30,7 @@ def register_SSS(source_fp, source_res,
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(),ts+ project_name+"_images"))
         opdir = ts + project_name + "_images"
+        pass_in = ts + project_name
     else:
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(),pass_in+"_images"))
@@ -48,7 +49,7 @@ def register_SSS(source_fp, source_res,
     print(project_name +": target image loaded")
 
     #registration
-    src_tgt1_tform = register_elx_(source.image, target.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target_mask_fp, output_dir= ts + project_name + "_tforms_src_tgt1", output_fn = ts + project_name +"_init_src_tgt1.txt", return_image = False,logging = True, bounding_box=False)
+    src_tgt1_tform = register_elx_(source.image, target.image, reg_param1, moving_mask = source_mask_fp,  fixed_mask = target_mask_fp, output_dir= pass_in + "_tforms_src_tgt1", output_fn = pass_in +"_init_src_tgt1.txt", return_image = False,logging = True, bounding_box=False)
 
     #transform result and save output
     os.chdir(wd)
