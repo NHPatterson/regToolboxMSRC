@@ -372,9 +372,9 @@ def check_im_size_fiji(image):
 def transform_image(moving, transformationMap):
 
     try:
-        selx = sitk.SimpleTransformix()
+        transformix = sitk.SimpleTransformix()
     except:
-        selx = sitk.TransformixImageFilter()
+        transformix = sitk.TransformixImageFilter()
 
     transformix.SetMovingImage(moving)
     transformix.SetTransformParameterMap(transformationMap)

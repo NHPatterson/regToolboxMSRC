@@ -238,7 +238,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def openFileNameDialog(self, dialog_str = ''):
         if dialog_str == '':
             dialog_str = 'Open file...'
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, text_str, "","All Files (*);;Tiff Files (*.tif);;YAML Files (*.yaml)")
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, dialog_str, "","All Files (*);;Tiff Files (*.tif);;YAML Files (*.yaml)")
         return(file_name)
 
     def openFileDirDialog(self, dialog_str = ''):

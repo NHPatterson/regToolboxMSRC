@@ -17,7 +17,7 @@ import lxml.etree
 import lxml.builder
 import matplotlib
 from matplotlib import cm
-from regToolboxMSRC.utils.reg_utils import register_elx_, reg_image, parameter_files, transform_mc_image_sitk
+from regToolboxMSRC.utils.reg_utils import register_elx_, reg_image_preprocess, parameter_files, transform_mc_image_sitk
 
 class FI_ijrois(object):
 
@@ -217,7 +217,7 @@ def outputXMLboxes(boundingRect_df, imsres="100",imsmethod="mymethod.par", roina
         f.write(areaxmls[i])  # python will convert \n to os.linesep
     f.close()
 
-def bruker_output_xmls(fp_moving, fp_fixed, wd, ijroi_fp, project_name, ims_resolution = 10 , ims_method = "par", roi_name= "roi", splits = "0"):
+def bruker_output_xmls(source_fp, target_fp, wd, ijroi_fp, project_name, ims_resolution = 10 , ims_method = "par", roi_name= "roi", splits = "0"):
 
     ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
     no_splits = int(splits)
@@ -226,22 +226,16 @@ def bruker_output_xmls(fp_moving, fp_fixed, wd, ijroi_fp, project_name, ims_reso
     os.chdir(wd)
 
     #get FI tform
-    moving = reg_image(fp_moving, 'sitk', img_res=1)
-    if moving.image.GetNumberOfComponentsPerPixel() > 1:
-        moving.to_greyscale()
-
-    fixed = reg_image(fp_fixed, 'sitk', img_res=1)
-
-    if fixed.image.GetNumberOfComponentsPerPixel() > 1:
-        fixed.to_greyscale()
+    source_image = reg_image_preprocess(source_fp, 1, img_type = 'AF')
+    target_image = reg_image_preprocess(target_fp, 1, img_type = 'AF')
 
     param = parameter_files()
 
-    tmap_correction = register_elx_(moving.image, fixed.image, param.correction, moving_mask = "none",  fixed_mask = "none", output_dir= ts + project_name + "_tforms_FI_correction", output_fn = ts + project_name +"_correction.txt", logging = True)
+    tmap_correction = register_elx_(source_image.image, target_image.image, param.correction, moving_mask = None,  fixed_mask = None, output_dir= ts + project_name + "_tforms_FI_correction", output_fn = ts + project_name +"_correction.txt", logging = True)
 
 
     #rois:
-    rois = FI_ijrois(fp_moving, 1, is_mask = False)
+    rois = FI_ijrois(source_fp, 1, is_mask = False)
     rois.get_rectangles_ijroi(ijroi_fp)
     rois.draw_rect_mask(return_np=False)
     rois = transform_mc_image_sitk(rois.roi_mask, tmap_correction, 1, from_file = False, is_binary_mask = True)
