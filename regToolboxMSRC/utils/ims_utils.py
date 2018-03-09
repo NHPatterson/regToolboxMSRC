@@ -9,7 +9,6 @@ import SimpleITK as sitk
 import numpy as np
 import pandas as pd
 import cv2
-import scipy.ndimage.filters as fi
 import os.path
 import sys
 import sqlite3
@@ -197,8 +196,8 @@ def parse_sqlite_coordinates(filepath):
         sname['y'] = sname['y'] - (int(np.min(sname['y'])))
         sname = sname.sort_values(['y','x'])
         #sname['index'] = np.arange(1,len(np.array(sname['x']))+1,1)
-        
-        return sname  
+
+        return sname
 
 
 #def parse_sqlite_coordinates(filepath):
@@ -211,76 +210,81 @@ def parse_sqlite_coordinates(filepath):
 #        sname['y'] = sname['original_y'] - (int(np.min(sname['original_y'])))
 #        sname = sname.sort_values(['y','x'])
 #        sname['index'] = np.arange(1,len(np.array(sname['x']))+1,1)
-#        
-#        return sname  
-        
+#
+#        return sname
+
 def parse_bruker_spotlist(spotlist_fp):
     if os.path.splitext(spotlist_fp)[1] == '.csv':
         spotlist = pd.read_csv(spotlist_fp,sep=",", header=1)
         sname = spotlist['spot-name']
-        
+
     if os.path.splitext(spotlist_fp)[1] == '.txt':
         spotlist = pd.read_csv(spotlist_fp,sep=" ", header=1)
         sname = spotlist['Y-pos']
-        
+
     #sname = spotlist['spot-name']
     sname = sname.str.split('X',2, expand=True)
     sname = sname[1]
     sname = sname.str.split('Y',2, expand=True)
     sname.rename(columns={0: 'x', 1: 'y'}, inplace=True)
     sname = sname.astype(int)
-    
+
     sname['x'] = sname['x'] - (int(np.min(sname['x'])))
     sname['y'] = sname['y'] - (int(np.min(sname['y'])))
     sname = sname.sort_values(['y','x'])
-    
+
     return sname
 
-def gkern2(kernlen, nsig):
-    """Returns a 2D Gaussian kernel array."""
 
-    # create nxn zeros
-    inp = np.zeros((kernlen, kernlen))
-    # set element at the middle to one, a dirac delta
-    inp[kernlen//2, kernlen//2] = 1
-    # gaussian-smooth the dirac, resulting in a gaussian filter mask
-    return fi.gaussian_filter(inp, nsig)
+def gkern(kernlen, nsig):
+    """
+    creates gaussian kernel with side length of kernlen and a sigma of nsigma
+    """
+
+    ax = np.arange(-kernlen // 2 +1, kernlen // 2 +1)
+
+    xx, yy = np.meshgrid(ax, ax)
+
+    kernel = np.exp(-(xx**2 + yy**2) / (2. * nsig**2))
+
+    return kernel / np.sum(kernel)
+
 
 class IMS_pixel_maps(object):
-    
+
     def __init__(self, filepath, IMS_res, micro_res, padding = 20):
         self.type = 'IMS pixel map'
         self.filepath = filepath
-        
+
         self.scale_factor = IMS_res / micro_res
         self.img_padding = int(padding*self.scale_factor)
 
         self.ims_data_type = os.path.splitext(filepath)[1]
-        
+
         if self.ims_data_type == '.csv' or self.ims_data_type == '.txt':
             self.spots = parse_bruker_spotlist(filepath)
-            
+
         if self.ims_data_type.lower() == '.imzml':
             self.spots = parse_imzml_coordinates(filepath)
-            
+
         if self.ims_data_type == '.sqlite':
             self.spots = parse_sqlite_coordinates(filepath)
 
     def IMS_reg_mask(self, stamping = True):
         IMS_mask = np.zeros(( max(self.spots['y']) + 1, max(self.spots['x']) + 1))
         IMS_mask[np.array(self.spots['y']), np.array(self.spots['x'])] = 255
-        
+
         IMS_mask = sitk.GetImageFromArray(IMS_mask)
         self.ims_binary_mask = IMS_mask
         IMS_mask_upsampled = sitk.Expand(IMS_mask, (int(self.scale_factor), int(self.scale_factor)), sitk.sitkNearestNeighbor)
         IMS_mask_upsampled = sitk.ConstantPad(IMS_mask_upsampled,(self.img_padding, self.img_padding), (self.img_padding, self.img_padding))
-        
+
         if self.scale_factor % 2 == 0:
-            self.g_kernel = gkern2(self.scale_factor - 1, nsig=(self.scale_factor - 1)/5)
+            self.g_kernel = gkern(int(self.scale_factor - 1), nsig=(self.scale_factor - 1)/5)
             self.g_kernel = cv2.resize(self.g_kernel, (int(self.scale_factor),int(self.scale_factor)))
         else:
-            self.g_kernel = gkern2(self.scale_factor, nsig= self.scale_factor / 5)
-        
+            self.g_kernel = gkern(self.scale_factor, nsig= self.scale_factor / 5)
+
         if stamping == True:
             stamp_mat = np.tile(self.g_kernel, (max(self.spots['y'])+1, max(self.spots['x'])+1))
             stamp_mat = sitk.GetImageFromArray(stamp_mat)
@@ -302,7 +306,7 @@ class IMS_pixel_maps(object):
         self.ims_idxed_mask = IMS_mask_idx
         IMS_mask_idx_upsampled = sitk.Expand(IMS_mask_idx, (int(self.scale_factor), int(self.scale_factor)), sitk.sitkNearestNeighbor)
         IMS_mask_idx_upsampled = sitk.ConstantPad(IMS_mask_idx_upsampled,(self.img_padding, self.img_padding), (self.img_padding, self.img_padding))
-        self.IMS_indexed_mask = IMS_mask_idx_upsampled 
+        self.IMS_indexed_mask = IMS_mask_idx_upsampled
 
 
 
@@ -326,4 +330,3 @@ class IMS_pixel_maps(object):
 #sitk.WriteImage(sl_pmap.IMS_registration_mask, "sqlite_stamptest.tif",True)
 #sl_pmap.IMS_idxed_mask()
 #sitk.WriteImage(sl_pmap.IMS_indexed_mask, "sqlite_idxedtest.mha",True)
-

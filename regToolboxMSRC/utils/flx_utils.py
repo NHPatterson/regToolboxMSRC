@@ -137,7 +137,7 @@ def mask_contours_to_boxes(binary_mask):
     boxes['p1'] = boxes['x1'].map(str) +','+ boxes['y1'].map(str)
     boxes['p2'] = boxes['x2'].map(str) +','+ boxes['y2'].map(str)
 
-    boxes = boxes.sort(['y1'], ascending= True)
+    boxes = boxes.sort_values(['y1'], ascending= True)
     boxes = boxes.reset_index()
 
     return(boxes)
