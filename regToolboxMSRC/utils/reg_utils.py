@@ -17,13 +17,13 @@ import xml.dom.minidom
 import pkg_resources
 
 
-
-class reg_image(object):
+class RegImage(object):
     '''
         Container class for image meta data and processing between ITK and cv2
 
     '''
-    def __init__(self, filepath, im_format, img_res = 1):
+
+    def __init__(self, filepath, im_format, img_res=1):
         '''
         Container class for image meta data and processing between ITK and cv2
             :param filepath: filepath to the image
@@ -48,11 +48,9 @@ class reg_image(object):
         if im_format == 'sitk':
             self.image = image
             if len(self.image.GetSpacing()) == 3:
-                self.image.SetSpacing((self.spacing,self.spacing, float(1)))
+                self.image.SetSpacing((self.spacing, self.spacing, float(1)))
             else:
-                self.image.SetSpacing((self.spacing,self.spacing))
-
-
+                self.image.SetSpacing((self.spacing, self.spacing))
 
     def to_greyscale(self):
         '''
@@ -66,15 +64,13 @@ class reg_image(object):
                 image = sitk.GetImageFromArray(image)
                 image.SetSpacing(spacing)
             else:
-                raise ValueError('Channel depth != 3, image is not RGB type'
-                                 )
+                raise ValueError('Channel depth != 3, image is not RGB type')
 
         if self.im_format == 'np':
             if self.image.shape == 3 and self.image.shape[2] == 3:
                 image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
             else:
-                raise ValueError('Channel depth != 3, image is not RGB type'
-                                 )
+                raise ValueError('Channel depth != 3, image is not RGB type')
 
         self.image = image
         self.type = self.type + '-Greyscaled'
@@ -91,16 +87,16 @@ class reg_image(object):
                 image = sitk.GetArrayFromImage(self.image)
 
                 if compression == 'sum':
-                    image = np.sum(image,0)
+                    image = np.sum(image, 0)
                     #print(image.dtype)
                     #image = cast_8bit_np(image)
 
                 if compression == 'mean':
-                    image = np.mean(image,0)
+                    image = np.mean(image, 0)
                     #print(image.dtype)
 
                 if compression == 'max':
-                    image = np.max(image,0)
+                    image = np.max(image, 0)
                     #print(image.dtype)
                     #image = cast_8bit_np(image)
 
@@ -108,7 +104,7 @@ class reg_image(object):
                 self.image = sitk.RescaleIntensity(self.image, 0, 255)
                 self.image = sitk.Cast(self.image, sitk.sitkUInt8)
                 #self.image.SetSpacing(self.spacing)
-                self.image.SetSpacing((self.spacing,self.spacing))
+                self.image.SetSpacing((self.spacing, self.spacing))
 
                 self.type = self.type + '-AF channels compressed'
             else:
@@ -164,22 +160,39 @@ class reg_image(object):
         else:
             self.image = sitk.GetImageFromArray(self.image)
             self.im_format = 'sitk'
-            self.image.SetSpacing((self.spacing,self.spacing))
+            self.image.SetSpacing((self.spacing, self.spacing))
+
 
 class parameter_files(object):
     '''
         Class to load SimpleITK parameters from file
     '''
+
     def __init__(self):
         resource_package = 'regToolboxMSRC'
 
-        self.testing = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'testing.txt'))))
-        self.rigid = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'rigid.txt'))))
-        self.scaled_rigid = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'scaled_rigid.txt'))))
-        self.affine = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'affine.txt'))))
-        self.nl = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'nl.txt'))))
-        self.correction = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'fi_correction.txt'))))
-        self.affine_test = sitk.ReadParameterFile(pkg_resources.resource_filename(resource_package, '/'.join(('parameter_files', 'affine_test.txt'))))
+        self.testing = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'testing.txt'))))
+        self.rigid = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'rigid.txt'))))
+        self.scaled_rigid = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'scaled_rigid.txt'))))
+        self.affine = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'affine.txt'))))
+        self.nl = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'nl.txt'))))
+        self.correction = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'fi_correction.txt'))))
+        self.affine_test = sitk.ReadParameterFile(
+            pkg_resources.resource_filename(resource_package, '/'.join(
+                ('parameter_files', 'affine_test.txt'))))
+
 
 def get_mask_bb(mask_fp):
     '''
@@ -189,17 +202,27 @@ def get_mask_bb(mask_fp):
         :param mask_fp: File path to the mask image
     '''
     mask = sitk.GetArrayFromImage(sitk.ReadImage(mask_fp))
-    hi,cnt,cnt2 = cv2.findContours(mask, 1, 2)
-    x,y,w,h = cv2.boundingRect(cnt[0])
-    return x,y,w,h
+    hi, cnt, cnt2 = cv2.findContours(mask, 1, 2)
+    x, y, w, h = cv2.boundingRect(cnt[0])
+    return x, y, w, h
 
-def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, output_dir= "transformations", output_fn = "myreg.txt", return_image = False, logging = True, bounding_box = False):
+
+def register_elx_(moving,
+                  fixed,
+                  param,
+                  moving_mask=None,
+                  fixed_mask=None,
+                  output_dir="transformations",
+                  output_fn="myreg.txt",
+                  return_image=False,
+                  logging=True,
+                  bounding_box=False):
     '''
     Utility function to register 2D images and save their results in a user named subfolder and transformation text file.
 
-    :param moving: SimpleITK image set as moving image. Can optionally pass sitk.ReadImage(moving_img_fp) to load image from file. Warning that usually this function is accompanied using the 'reg_image' class where image spacing is set
+    :param moving: SimpleITK image set as moving image. Can optionally pass sitk.ReadImage(moving_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
 
-    :param fixed: SimpleITK image set as fixed image. Can optionally pass sitk.ReadImage(fixed_img_fp) to load image from file. Warning that usually this function is accompanied using the 'reg_image' class where image spacing is set
+    :param fixed: SimpleITK image set as fixed image. Can optionally pass sitk.ReadImage(fixed_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
 
     :param param: Elastix paramter file loaded into SWIG. Can optionally pass sitk.ReadParameterFile(parameter_fp) to load text parameter from file. See http://elastix.isi.uu.nl/ for example parameter files
 
@@ -240,12 +263,12 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     param_selx = param
     #turns off returning the image in the paramter file
     if return_image == False:
-        param_selx['WriteResultImage'] = ('false',)
+        param_selx['WriteResultImage'] = ('false', )
 
     selx.SetParameterMap(param_selx)
 
     #set masks if used
-    if moving_mask == None :
+    if moving_mask == None:
         pass
     else:
         if isinstance(moving_mask, type(sitk.Image())) == True:
@@ -258,13 +281,14 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
             mask_moving.SetSpacing(moving.GetSpacing())
             selx.SetMovingMask(mask_moving)
 
-
         if bounding_box == True:
-            moving_x,moving_y,moving_w,moving_h = get_mask_bb(moving_mask)
-            mask_moving = mask_moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
-            moving = moving[moving_x:moving_x+moving_w,moving_y:moving_y+moving_h]
+            moving_x, moving_y, moving_w, moving_h = get_mask_bb(moving_mask)
+            mask_moving = mask_moving[moving_x:moving_x + moving_w, moving_y:
+                                      moving_y + moving_h]
+            moving = moving[moving_x:moving_x + moving_w, moving_y:
+                            moving_y + moving_h]
 
-    if fixed_mask == None :
+    if fixed_mask == None:
         pass
     else:
         if isinstance(fixed_mask, type(sitk.Image())) == True:
@@ -279,13 +303,13 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
 
         fixed_shape_original = mask_fixed.GetSize()
         if bounding_box == True:
-            fixed_x,fixed_y,fixed_w,fixed_h = get_mask_bb(fixed_mask)
-            mask_fixed = mask_fixed[fixed_x:fixed_x+fixed_w,fixed_y:fixed_y+fixed_h]
-            fixed = fixed[fixed_x:fixed_x+fixed_w,fixed_y:fixed_y+fixed_h]
+            fixed_x, fixed_y, fixed_w, fixed_h = get_mask_bb(fixed_mask)
+            mask_fixed = mask_fixed[fixed_x:fixed_x + fixed_w, fixed_y:
+                                    fixed_y + fixed_h]
+            fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:fixed_y + fixed_h]
 
         #mask_fixed.SetSpacing(fixed.GetSpacing())
         #selx.SetFixedMask(mask_fixed)
-
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -302,7 +326,9 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
     else:
         selx.Execute()
 
-    os.rename(os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'), os.path.join(os.getcwd(), output_dir, output_fn +'.txt'))
+    os.rename(
+        os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'),
+        os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
 
     transformationMap = selx.GetTransformParameterMap()
 
@@ -312,6 +338,7 @@ def register_elx_(moving, fixed, param, moving_mask = None,  fixed_mask = None, 
         return transformationMap, transformed_image
     else:
         return transformationMap
+
 
 def paste_to_original_dim(transformed_image, fixed_x, fixed_y, final_size_2D):
     '''
@@ -332,26 +359,45 @@ def paste_to_original_dim(transformed_image, fixed_x, fixed_y, final_size_2D):
 
     if transformed_image.GetNumberOfComponentsPerPixel() == 3:
         print('RGB_image')
-        placeholder = sitk.Image([final_size_2D[0],final_size_2D[1]],transformed_image.GetPixelIDValue(), 3)
+        placeholder = sitk.Image([final_size_2D[0], final_size_2D[1]],
+                                 transformed_image.GetPixelIDValue(), 3)
         placeholder.GetSize()
-        transformed_image = sitk.Paste(placeholder, transformed_image, transformed_image.GetSize(), destinationIndex=[fixed_x, fixed_y])
+        transformed_image = sitk.Paste(
+            placeholder,
+            transformed_image,
+            transformed_image.GetSize(),
+            destinationIndex=[fixed_x, fixed_y])
 
     elif transformed_image.GetDepth() > 1:
         print('multichannel_image')
 
-        placeholder = sitk.Image([final_size_2D[0],final_size_2D[1],transformed_image.GetDepth()],transformed_image.GetPixelIDValue())
+        placeholder = sitk.Image(
+            [final_size_2D[0], final_size_2D[1],
+             transformed_image.GetDepth()],
+            transformed_image.GetPixelIDValue())
         #print('image made')
         #print(str(placeholder.GetSize()))
         #print(str(transformed_image.GetSize()))
-        transformed_image = sitk.Paste(placeholder, transformed_image, transformed_image.GetSize(), destinationIndex=[fixed_x, fixed_y,0])
+        transformed_image = sitk.Paste(
+            placeholder,
+            transformed_image,
+            transformed_image.GetSize(),
+            destinationIndex=[fixed_x, fixed_y, 0])
 
-    elif transformed_image.GetDepth() < 1 and transformed_image.GetNumberOfComponentsPerPixel() == 1:
+    elif transformed_image.GetDepth(
+    ) < 1 and transformed_image.GetNumberOfComponentsPerPixel() == 1:
         print('singlechannel_image')
-        placeholder = sitk.Image([final_size_2D[0],final_size_2D[1]],transformed_image.GetPixelIDValue())
+        placeholder = sitk.Image([final_size_2D[0], final_size_2D[1]],
+                                 transformed_image.GetPixelIDValue())
         placeholder.GetSize()
-        transformed_image = sitk.Paste(placeholder, transformed_image, transformed_image.GetSize(), destinationIndex=[fixed_x, fixed_y])
+        transformed_image = sitk.Paste(
+            placeholder,
+            transformed_image,
+            transformed_image.GetSize(),
+            destinationIndex=[fixed_x, fixed_y])
 
     return transformed_image
+
 
 def check_im_size_fiji(image):
     '''
@@ -369,6 +415,7 @@ def check_im_size_fiji(image):
 
     return impixels > 10**9
 
+
 def transform_image(moving, transformationMap):
 
     try:
@@ -380,22 +427,26 @@ def transform_image(moving, transformationMap):
     transformix.SetTransformParameterMap(transformationMap)
     transformix.LogToConsoleOff()
     moving_tformed = transformix.Execute()
-    return(moving_tformed)
+    return (moving_tformed)
 
-def transform_mc_image_sitk(image_fp, transformationMap, img_res, from_file = True, is_binary_mask = False):
+
+def transform_mc_image_sitk(image_fp,
+                            transformationMap,
+                            img_res,
+                            from_file=True,
+                            is_binary_mask=False):
 
     if from_file == True:
         print('image loaded from file')
         image = sitk.ReadImage(image_fp)
         if len(image.GetSpacing()) == 3:
-            image.SetSpacing((float(img_res),float(img_res), float(1)))
+            image.SetSpacing((float(img_res), float(img_res), float(1)))
         else:
-            image.SetSpacing((float(img_res),float(img_res)))
+            image.SetSpacing((float(img_res), float(img_res)))
 
     if from_file == False:
         print('image loaded from memory')
         image = image_fp
-
 
     # grayscale image transformation
     if image.GetNumberOfComponentsPerPixel() == 1 and image.GetDepth() == 0:
@@ -410,16 +461,15 @@ def transform_mc_image_sitk(image_fp, transformationMap, img_res, from_file = Tr
             tformed_image = sitk.Cast(tformed_image, sitk.sitkUInt8)
             return tformed_image
 
-
     # RGB image
     if image.GetNumberOfComponentsPerPixel() > 1:
         tformed_image = []
         for chan in range(image.GetNumberOfComponentsPerPixel()):
-            print('getting image ' + str(chan) + ' of RGB' )
+            print('getting image ' + str(chan) + ' of RGB')
             channel = sitk.VectorIndexSelectionCast(image, chan)
-            print('transforming image ' + str(chan) + ' of RGB' )
+            print('transforming image ' + str(chan) + ' of RGB')
             channel = transform_image(channel, transformationMap)
-            print('rescaling image ' + str(chan) + ' of RGB' )
+            print('rescaling image ' + str(chan) + ' of RGB')
             channel = sitk.RescaleIntensity(channel, 0, 255)
             tformed_image.append(channel)
         print('composing RGB')
@@ -429,33 +479,44 @@ def transform_mc_image_sitk(image_fp, transformationMap, img_res, from_file = Tr
 
     #multilayer 2D image, i.e. multichannel fluorescence
     if image.GetDepth() > 0:
-            tformed_image = []
-            for chan in range(image.GetDepth()):
-                print('getting image ' + str(chan) + ' of multi-layer image' )
-                channel = image[:,:,chan]
-                print('transforming image ' + str(chan) + ' of multi-layer image' )
-                channel = transform_image(channel, transformationMap)
-                print('rescaling image ' + str(chan) + ' of multi-layer image' )
-                channel = sitk.RescaleIntensity(channel, 0, 255)
-                tformed_image.append(channel)
+        tformed_image = []
+        for chan in range(image.GetDepth()):
+            print('getting image ' + str(chan) + ' of multi-layer image')
+            channel = image[:, :, chan]
+            print('transforming image ' + str(chan) + ' of multi-layer image')
+            channel = transform_image(channel, transformationMap)
+            print('rescaling image ' + str(chan) + ' of multi-layer image')
+            channel = sitk.RescaleIntensity(channel, 0, 255)
+            tformed_image.append(channel)
 
-            print('adding images to sequence')
-            tformed_image = sitk.JoinSeries(tformed_image)
-            print('casting to 8-bit')
-            tformed_image = sitk.Cast(tformed_image, sitk.sitkUInt8)
-            return tformed_image
-
+        print('adding images to sequence')
+        tformed_image = sitk.JoinSeries(tformed_image)
+        print('casting to 8-bit')
+        tformed_image = sitk.Cast(tformed_image, sitk.sitkUInt8)
+        return tformed_image
 
     return tformed_image
+
 
 def transform_from_gui(source_fp, transforms, TFM_wd, src_reso, project_name):
     for i in range(len(transforms)):
         if i == 0:
-            source = transform_mc_image_sitk(source_fp, transforms[i], src_reso, from_file = True, is_binary_mask = False)
+            source = transform_mc_image_sitk(
+                source_fp,
+                transforms[i],
+                src_reso,
+                from_file=True,
+                is_binary_mask=False)
         if i > 0:
-            source = transform_mc_image_sitk(source, transforms[i], source.GetSpacing()[0], from_file = False, is_binary_mask = False)
+            source = transform_mc_image_sitk(
+                source,
+                transforms[i],
+                source.GetSpacing()[0],
+                from_file=False,
+                is_binary_mask=False)
     os.chdir(TFM_wd)
-    sitk.WriteImage(source, project_name + ".tif",True)
+    sitk.WriteImage(source, project_name + ".tif", True)
+
 
 def write_param_xml(xml_params, opdir, ts, project_name):
     stringed = ET.tostring(xml_params)
@@ -466,10 +527,12 @@ def write_param_xml(xml_params, opdir, ts, project_name):
     myfile.close()
     return
 
+
 def prepare_output(wd, project_name, xml_params):
     #prepare folder name
 
-    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d_%H_%M_%S_')
+    ts = datetime.datetime.fromtimestamp(
+        time.time()).strftime('%Y%m%d_%H_%M_%S_')
     os.chdir(wd)
     os.makedirs(ts + project_name + "_images")
     opdir = ts + project_name + "_images\\"
@@ -478,15 +541,16 @@ def prepare_output(wd, project_name, xml_params):
     #output parameters to XML file
     write_param_xml(xml_params, opdir, ts, project_name)
 
-def reg_image_preprocess(image_fp, img_res, img_type = 'RGB_l'):
-    if img_type in ['RGB_l','AF']:
+
+def reg_image_preprocess(image_fp, img_res, img_type='RGB_l'):
+    if img_type in ['RGB_l', 'AF']:
         if img_type == "RGB_l":
-            out_image = reg_image(image_fp, 'sitk', img_res)
+            out_image = RegImage(image_fp, 'sitk', img_res)
             out_image.to_greyscale()
             out_image.invert_intensity()
 
         else:
-            out_image = reg_image(image_fp, 'sitk', img_res)
+            out_image = RegImage(image_fp, 'sitk', img_res)
             if out_image.image.GetDepth() > 1:
                 out_image.compress_AF_channels('max')
             if out_image.image.GetNumberOfComponentsPerPixel() == 3:
@@ -496,9 +560,13 @@ def reg_image_preprocess(image_fp, img_res, img_type = 'RGB_l'):
 
     return out_image
 
+
 def parameter_load(reg_model):
     if isinstance(reg_model, str):
-        if reg_model in ['affine' ,'affine_test' ,'fi_correction' ,'nl' ,'rigid' ,'scaled_rigid', 'testing']:
+        if reg_model in [
+                'affine', 'affine_test', 'fi_correction', 'nl', 'rigid',
+                'scaled_rigid', 'testing'
+        ]:
             reg_param = getattr(parameter_files(), reg_model)
             return reg_param
 
@@ -509,4 +577,5 @@ def parameter_load(reg_model):
             except:
                 print('invalid parameter file')
     else:
-        print('parameter input is not a filepath or default parameter file str')
+        print(
+            'parameter input is not a filepath or default parameter file str')
