@@ -841,21 +841,27 @@ class MainWindow(QtWidgets.QMainWindow):
             print("Starting IMS pixel map generation...")
             print("Project Name: " + project_name)
             os.chdir(self.IMS_wd)
-            pmap = ImsPixelMaps(self.IMS_data_fp, ims_res, img_res, padding)
+            ims_mapping = ImsPixelMaps(self.IMS_data_fp, ims_res, img_res,
+                                       padding)
 
-            pmap.IMS_reg_mask(stamping=True)
+            ims_mapping.generate_reg_mask(stamping=True)
             sitk.WriteImage(
-                pmap.IMS_registration_mask,
-                project_name + "_regMask_" + "_imsres" + str(ims_res) +
-                "_imgres" + str(img_res) + "_pad" + str(padding) + ".tif",
+                ims_mapping.IMS_registration_template,
+                project_name + "_regMask" + "_IMSres" + str(ims_res) +
+                "_MicroRes" + str(img_res) + "_pad" + str(padding) + ".tif",
                 True)
 
-            pmap.IMS_idxed_mask()
+            ims_mapping.generate_idx_mask()
             sitk.WriteImage(
-                pmap.IMS_indexed_mask,
+                ims_mapping.IMS_indexed_mask,
                 project_name + "_indexMask_" + "_imsres" + str(ims_res) +
                 "_imgres" + str(img_res) + "_pad" + str(padding) + ".mha",
                 True)
+
+            ims_mapping.spots.to_csv(
+                project_name + "_IMS_mapping_key.csv",
+                index=True,
+                index_label='pixel_idx')
 
             QtWidgets.QMessageBox.question(
                 self, 'Pixel Map Generation Finished',
