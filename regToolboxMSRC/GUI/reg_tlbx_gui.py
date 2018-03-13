@@ -846,7 +846,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             ims_mapping.generate_reg_mask(stamping=True)
             sitk.WriteImage(
-                ims_mapping.IMS_registration_template,
+                ims_mapping.IMS_reg_template,
                 project_name + "_regMask" + "_IMSres" + str(ims_res) +
                 "_MicroRes" + str(img_res) + "_pad" + str(padding) + ".tif",
                 True)
