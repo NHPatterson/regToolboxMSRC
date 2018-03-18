@@ -13,6 +13,7 @@ import cv2
 import sqlite3
 from lxml.etree import iterparse
 
+
 def imzml_coord_parser(filepath):
     """Extracts x y coordinates from imzml coordinates.
     It is a stripped out version from
@@ -99,11 +100,9 @@ def parse_bruker_spotlist(filepath):
         spotlist = pd.read_csv(filepath, sep=" ", header=1)
         bruker_coord_str = spotlist['Y-pos']
 
-    bruker_coord_str = bruker_coord_str.str.split(
-        'X', 2, expand=True)
+    bruker_coord_str = bruker_coord_str.str.split('X', 2, expand=True)
     bruker_coord_str = bruker_coord_str[1]
-    bruker_coord_str = bruker_coord_str.str.split(
-        'Y', 2, expand=True)
+    bruker_coord_str = bruker_coord_str.str.split('Y', 2, expand=True)
 
     return np.array(bruker_coord_str, dtype=np.int64)
 
@@ -122,13 +121,12 @@ def coordinates_to_pd(coordinates):
         Description of returned object.
 
     """
-    coordinate_df = pd.DataFrame(
-        coordinates, columns=['x', 'y'])
+    coordinate_df = pd.DataFrame(coordinates, columns=['x', 'y'])
 
     coordinate_df['x_minimized'] = coordinate_df['x'] - (int(
-        np.min(coordinate_df['x']))) +1
+        np.min(coordinate_df['x']))) + 1
     coordinate_df['y_minimized'] = coordinate_df['y'] - (int(
-        np.min(coordinate_df['y']))) +1
+        np.min(coordinate_df['y']))) + 1
 
     coordinate_df = coordinate_df.sort_values(['y', 'x'])
 
@@ -227,8 +225,8 @@ class ImsPixelMaps(object):
 
         if stamping == True:
             stamp_mat = np.tile(self.g_kernel,
-                                (max(self.spots['y_minimized']) ,
-                                 max(self.spots['x_minimized']) ))
+                                (max(self.spots['y_minimized']),
+                                 max(self.spots['x_minimized'])))
             stamp_mat = sitk.GetImageFromArray(stamp_mat)
             stamp_mat = sitk.ConstantPad(stamp_mat,
                                          (self.img_padding, self.img_padding),
@@ -246,12 +244,12 @@ class ImsPixelMaps(object):
             self.IMS_reg_template = IMS_mask_upsampled
 
     def generate_idx_mask(self):
-        IMS_mask_idx = np.zeros((max(self.spots['y_minimized']) ,
+        IMS_mask_idx = np.zeros((max(self.spots['y_minimized']),
                                  max(self.spots['x_minimized'])))
-        IMS_mask_idx[np.array(self.spots['y_minimized']) - 1 ,
+        IMS_mask_idx[np.array(self.spots['y_minimized']) - 1,
                      np.array(self.spots['x_minimized']) - 1] = np.arange(
                          1,
-                         len(np.array(self.spots['x_minimized'])) +1, 1)
+                         len(np.array(self.spots['x_minimized'])) + 1, 1)
         IMS_mask_idx = sitk.GetImageFromArray(IMS_mask_idx)
         IMS_mask_idx = sitk.Cast(IMS_mask_idx, sitk.sitkUInt32)
         self.idx_map_ims_scale = IMS_mask_idx
@@ -262,4 +260,3 @@ class ImsPixelMaps(object):
             IMS_mask_idx_upsampled, (self.img_padding, self.img_padding),
             (self.img_padding, self.img_padding))
         self.IMS_indexed_mask = IMS_mask_idx_upsampled
-

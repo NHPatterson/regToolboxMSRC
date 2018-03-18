@@ -1224,10 +1224,8 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         else:
-            #xml_params = self.get_params_xml()
-            #fix
-            #src_reso = str(self.ui.TFM_ims_reso.text())
-            src_reso = 0.92
+            src_reso = str(self.ui.TFM_src_reso.text())
+
             project_name = str(self.ui.TFM_textbox_fn.text())
 
             print("Starting Registration...")
