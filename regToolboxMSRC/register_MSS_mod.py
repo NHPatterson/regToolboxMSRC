@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 27 14:08:20 2018
+Created on Tue Feb 27 14:15:05 2018
 
 @author: nhp
 """
@@ -13,7 +13,7 @@ from regToolboxMSRC.utils.reg_utils import register_elx_, transform_mc_image_sit
 import SimpleITK as sitk
 
 
-def register_SSS(source_fp,
+def register_MSS(source_fp,
                  source_res,
                  target_fp,
                  target_res,
@@ -29,8 +29,8 @@ def register_SSS(source_fp,
                  bounding_box=False,
                  pass_in_project_name=False,
                  pass_in=None):
-    """This function performs linear registration between 2 images from
-    the same tissue section.
+    """This function performs linear then non-linear registration between 2
+    images from serial tissue sections.
 
     Parameters
     ----------
@@ -97,6 +97,7 @@ def register_SSS(source_fp,
         os.makedirs(os.path.join(os.getcwd(), ts + project_name + "_images"))
         opdir = ts + project_name + "_images"
         pass_in = ts + project_name
+
     else:
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(), pass_in + "_images"))
@@ -116,36 +117,100 @@ def register_SSS(source_fp,
     print(project_name + ": target image loaded")
 
     #registration
-    src_tgt1_tform = register_elx_(
+
+    src_tgt_tform_init, init_img, bbox_dict = register_elx_(
         source.image,
         target.image,
         reg_param1,
         moving_mask=source_mask_fp,
         fixed_mask=target_mask_fp,
-        output_dir=pass_in + "_tforms_src_tgt1",
-        output_fn=pass_in + "_init_src_tgt1.txt",
-        return_image=False,
+        output_dir=pass_in + "_tforms_src_tgt_init",
+        output_fn=pass_in + "_init_src_tgt_init.txt",
+        return_image=True,
         logging=True,
-        bounding_box=False)
+        bounding_box=True)
 
     #transform result and save output
     os.chdir(wd)
 
-    tformed_im = transform_mc_image_sitk(source_fp, src_tgt1_tform, source_res)
+    if intermediate_output == True:
+        if source_mask_fp != None and bounding_box == True:
 
-    #    if bounding_box == True and os.path.exists(target2_mask_fp):
-    #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
+            source = sitk.ReadImage(source_fp)
+            source = source[bbox_dict['moving_x']:bbox_dict['moving_x'] +
+                            bbox_dict['moving_w'], bbox_dict['moving_y']:
+                            bbox_dict['moving_y'] + bbox_dict['moving_h']]
+            source.SetOrigin((0, 0))
+            source.SetSpacing((source_res, source_res))
+            tformed_im = transform_mc_image_sitk(
+                source, src_tgt_tform_init, source_res, from_file=False)
+        else:
+
+            tformed_im = transform_mc_image_sitk(source_fp, src_tgt_tform_init,
+                                                 source_res)
+
+        if target_mask_fp != None and bounding_box == True:
+            tformed_im = paste_to_original_dim(
+                tformed_im, bbox_dict['fixed_x'], bbox_dict['fixed_y'],
+                bbox_dict['fixed_shape'])
+
+        sitk.WriteImage(tformed_im,
+                        os.path.join(os.getcwd(), opdir,
+                                     project_name + "_src_tgt_init.tif"), True)
+
+    del source
+
+    reg_param_nl = parameter_load('nl')
+
+    ##register using nl transformation
+    if source_mask_fp != None and bounding_box == True:
+        source_mask_fp = transform_mc_image_sitk(
+            source_mask_fp,
+            src_tgt_tform_init,
+            source_res,
+            from_file=True,
+            is_binary_mask=True)
+
+    src_tgt_tform_nl, bbox_dict_nl = register_elx_(
+        init_img,
+        target.image,
+        reg_param_nl,
+        moving_mask=None,
+        fixed_mask=target_mask_fp,
+        output_dir=pass_in + "_tforms_src_tgt_nl",
+        output_fn=pass_in + "init_src_tgt_nl.txt",
+        return_image=False,
+        logging=True,
+        bounding_box=True)
+
+    ##source to tgt2
+
+    source = sitk.ReadImage(source_fp)
+    source = source[bbox_dict[
+        'moving_x']:bbox_dict['moving_x'] + bbox_dict['moving_w'], bbox_dict[
+            'moving_y']:bbox_dict['moving_y'] + bbox_dict['moving_h']]
+    source.SetOrigin((0, 0))
+    source.SetSpacing((source_res, source_res))
+    tformed_im = transform_mc_image_sitk(
+        source, src_tgt_tform_init, source_res, from_file=False)
+
+    tformed_im = transform_mc_image_sitk(
+        tformed_im, src_tgt_tform_nl, source_res, from_file=False)
+
+    tformed_im = paste_to_original_dim(tformed_im, bbox_dict['fixed_x'],
+                                       bbox_dict['fixed_y'],
+                                       bbox_dict['fixed_shape'])
 
     if check_im_size_fiji(tformed_im) == True:
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt.mha"), True)
+                                     project_name + "_src_tgt_nl.mha"), True)
     else:
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt.tif"), True)
+                                     project_name + "_src_tgt_nl.tif"), True)
 
-    return os.path.join(os.getcwd(), opdir, project_name + "_src_tgt.tif")
+    return
 
 
 if __name__ == '__main__':
@@ -155,19 +220,17 @@ if __name__ == '__main__':
         # use safe_load instead load
         dataMap = yaml.safe_load(f)
 
-    register_SSS(
+    register_MSS(
         dataMap['source_fp'],
-        dataMap['source_res'],
+        dataMap['source_res'],  #source image
         dataMap['target_fp'],
-        dataMap['target_res'],
+        dataMap['target_res'],  #target image
         dataMap['source_mask_fp'],
-        dataMap['target_mask_fp'],
-        dataMap['wd'],
+        dataMap['target_mask_fp'],  #masks
+        dataMap['wd'],  #output directory
         dataMap['source_img_type'],
-        dataMap['target_img_type'],
-        dataMap['reg_model'],
+        dataMap['target_img_type'],  #image type info 'RGB_l' or 'AF'
+        dataMap['reg_model'],  #initial transformation model
         dataMap['project_name'],
         intermediate_output=dataMap['intermediate_output'],
-        bounding_box=dataMap['bounding_box'],
-        pass_in_project_name=True,
-        pass_in=None)
+        bounding_box=dataMap['bounding_box'])

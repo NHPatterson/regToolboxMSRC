@@ -196,14 +196,17 @@ class parameter_files(object):
 
 def get_mask_bb(mask_fp):
     '''
-        Uses cv2 to get bounding box after reading image from file, assumes image is an uint8 mask.
+        Uses sitk to get bounding box after reading image from file, assumes image is an uint8 mask.
         Returns top-left x,y pixel coordinates and the width and height of bounding box.
 
         :param mask_fp: File path to the mask image
     '''
-    mask = sitk.GetArrayFromImage(sitk.ReadImage(mask_fp))
-    hi, cnt, cnt2 = cv2.findContours(mask, 1, 2)
-    x, y, w, h = cv2.boundingRect(cnt[0])
+    mask = sitk.ReadImage(mask_fp)
+    mask = sitk.ConnectedComponent(mask)
+    lab_stats = sitk.LabelStatisticsImageFilter()
+    lab_stats.Execute(mask, mask)
+    bb = lab_stats.GetBoundingBox(1)
+    x, y, w, h = bb[0], bb[2], bb[1] - bb[0], bb[3] - bb[2]
     return x, y, w, h
 
 
@@ -267,6 +270,10 @@ def register_elx_(moving,
 
     selx.SetParameterMap(param_selx)
 
+    fixed_shape = fixed.GetSize()
+    moving_shape = moving.GetSize()
+
+    bbox_dict = {}
     #set masks if used
     if moving_mask == None:
         pass
@@ -277,16 +284,26 @@ def register_elx_(moving,
             selx.SetMovingMask(mask_moving)
 
         else:
-            mask_fixed = sitk.ReadImage(fixed_mask)
+            mask_moving = sitk.ReadImage(moving_mask)
             mask_moving.SetSpacing(moving.GetSpacing())
             selx.SetMovingMask(mask_moving)
 
         if bounding_box == True:
             moving_x, moving_y, moving_w, moving_h = get_mask_bb(moving_mask)
+            print(moving_x, moving_y, moving_w, moving_h)
             mask_moving = mask_moving[moving_x:moving_x + moving_w, moving_y:
                                       moving_y + moving_h]
+
             moving = moving[moving_x:moving_x + moving_w, moving_y:
                             moving_y + moving_h]
+            moving.SetOrigin((0, 0))
+            bbox_dict.update({
+                'moving_x': moving_x,
+                'moving_y': moving_y,
+                'moving_w': moving_w,
+                'moving_h': moving_h,
+                'moving_shape': moving_shape
+            })
 
     if fixed_mask == None:
         pass
@@ -301,13 +318,22 @@ def register_elx_(moving,
             mask_fixed.SetSpacing(fixed.GetSpacing())
             selx.SetMovingMask(mask_fixed)
 
-        fixed_shape_original = mask_fixed.GetSize()
         if bounding_box == True:
             fixed_x, fixed_y, fixed_w, fixed_h = get_mask_bb(fixed_mask)
+            print(fixed_x, fixed_y, fixed_w, fixed_h)
+
             mask_fixed = mask_fixed[fixed_x:fixed_x + fixed_w, fixed_y:
                                     fixed_y + fixed_h]
             fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:fixed_y + fixed_h]
+            fixed.SetOrigin((0, 0))
 
+            bbox_dict.update({
+                'fixed_x': fixed_x,
+                'fixed_y': fixed_y,
+                'fixed_w': fixed_w,
+                'fixed_h': fixed_h,
+                'fixed_shape': fixed_shape
+            })
         #mask_fixed.SetSpacing(fixed.GetSpacing())
         #selx.SetFixedMask(mask_fixed)
 
@@ -332,10 +358,16 @@ def register_elx_(moving,
 
     transformationMap = selx.GetTransformParameterMap()
 
-    if fixed_mask != None and bounding_box == True:
-        return transformationMap, fixed_x, fixed_y, fixed_w, fixed_h, fixed_shape_original
-    elif return_image == True:
+    ##really elegant function return below:
+    if len(bbox_dict) > 0 and return_image == True:
+        return transformationMap, transformed_image, bbox_dict
+
+    elif len(bbox_dict) == 0 and return_image == True:
         return transformationMap, transformed_image
+
+    elif len(bbox_dict) > 0 and return_image == False:
+        return transformationMap, bbox_dict
+
     else:
         return transformationMap
 
