@@ -24,6 +24,7 @@ def register_MSS(source_fp,
                  target_img_type,
                  reg_model,
                  project_name,
+                 linked_image_fp,
                  return_image=False,
                  intermediate_output=False,
                  bounding_box=False,
@@ -163,13 +164,13 @@ def register_MSS(source_fp,
     reg_param_nl = parameter_load('nl')
 
     ##register using nl transformation
-    if source_mask_fp != None and bounding_box == True:
-        source_mask_fp = transform_mc_image_sitk(
-            source_mask_fp,
-            src_tgt_tform_init,
-            source_res,
-            from_file=True,
-            is_binary_mask=True)
+#    if source_mask_fp != None and bounding_box == True:
+#        source_mask_fp = transform_mc_image_sitk(
+#            source_mask_fp,
+#            src_tgt_tform_init,
+#            source_res,
+#            from_file=True,
+#            is_binary_mask=True)
 
     src_tgt_tform_nl, bbox_dict_nl = register_elx_(
         init_img,
@@ -185,12 +186,37 @@ def register_MSS(source_fp,
 
     ##source to tgt2
 
-    source = sitk.ReadImage(source_fp)
+#    source = sitk.ReadImage(source_fp)
+#    source = source[bbox_dict[
+#        'moving_x']:bbox_dict['moving_x'] + bbox_dict['moving_w'], bbox_dict[
+#            'moving_y']:bbox_dict['moving_y'] + bbox_dict['moving_h']]
+#    source.SetOrigin((0, 0))
+#    source.SetSpacing((0.92,0.92))
+#    tformed_im = transform_mc_image_sitk(
+#        source, src_tgt_tform_init, source_res, from_file=False)
+#
+#    tformed_im = transform_mc_image_sitk(
+#        tformed_im, src_tgt_tform_nl, source_res, from_file=False)
+#
+#    tformed_im = paste_to_original_dim(tformed_im, bbox_dict['fixed_x'],
+#                                       bbox_dict['fixed_y'],
+#                                       bbox_dict['fixed_shape'])
+#
+#    if check_im_size_fiji(tformed_im) == True:
+#        sitk.WriteImage(tformed_im,
+#                        os.path.join(os.getcwd(), opdir,
+#                                     project_name + "_src_tgt_nl.mha"), True)
+#    else:
+#        sitk.WriteImage(tformed_im,
+#                        os.path.join(os.getcwd(), opdir,
+#                                     project_name + "_src_tgt_nl.tif"), True)
+
+    source = sitk.ReadImage(linked_image_fp)
     source = source[bbox_dict[
         'moving_x']:bbox_dict['moving_x'] + bbox_dict['moving_w'], bbox_dict[
             'moving_y']:bbox_dict['moving_y'] + bbox_dict['moving_h']]
     source.SetOrigin((0, 0))
-    source.SetSpacing((source_res, source_res))
+    source.SetSpacing((0.92,0.92))
     tformed_im = transform_mc_image_sitk(
         source, src_tgt_tform_init, source_res, from_file=False)
 
@@ -204,11 +230,13 @@ def register_MSS(source_fp,
     if check_im_size_fiji(tformed_im) == True:
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt_nl.mha"), True)
+                                     project_name + "_src_tgt_nl_linked.mha"), True)
     else:
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt_nl.tif"), True)
+                                     project_name + "_src_tgt_nl_linked.tif"), True)
+
+                                     
 
     return
 
@@ -219,7 +247,7 @@ if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         # use safe_load instead load
         dataMap = yaml.safe_load(f)
-
+    print(dataMap)
     register_MSS(
         dataMap['source_fp'],
         dataMap['source_res'],  #source image
@@ -232,5 +260,6 @@ if __name__ == '__main__':
         dataMap['target_img_type'],  #image type info 'RGB_l' or 'AF'
         dataMap['reg_model'],  #initial transformation model
         dataMap['project_name'],
-        intermediate_output=dataMap['intermediate_output'],
-        bounding_box=dataMap['bounding_box'])
+        dataMap['linked_image_fp'],
+        intermediate_output=False,
+        bounding_box=True)

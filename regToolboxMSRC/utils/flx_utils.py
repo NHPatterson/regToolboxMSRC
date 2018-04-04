@@ -209,7 +209,7 @@ def split_boxes(roi_coords,
             splits.append(shuffled_rois.iloc[first_idx:last_idx])
 
     for i in range(len(splits)):
-        splits[i] = splits[i].sort(['y1'], ascending=True)
+        splits[i] = splits[i].sort_values(['y1'], ascending=True)
         splits[i] = splits[i].reset_index(drop=True)
 
         #save csv of data
