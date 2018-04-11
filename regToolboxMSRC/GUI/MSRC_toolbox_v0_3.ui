@@ -1689,7 +1689,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>91</width>
+        <width>131</width>
         <height>16</height>
        </rect>
       </property>
@@ -2195,6 +2195,440 @@ color: rgb(255, 255, 255);</string>
      <attribute name="title">
       <string>Serial Section Overlap</string>
      </attribute>
+     <widget class="QPushButton" name="IMS_SS_button_source">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set source image</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_target">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>70</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set target image</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_SS_tgt_reso">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>70</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_source">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>40</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_SS_src_reso">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>39</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_target">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>70</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_init_tform">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>140</y>
+        <width>161</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set init. transform</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_init_tform">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>140</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_nl_tform">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>170</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_nl_tform">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>170</y>
+        <width>161</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set non-linear transform</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_wd">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>220</y>
+        <width>301</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(140, 140, 140);
+color: rgb(255, 255, 255);
+font: 75 8pt &quot;Arial&quot;;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_wd">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>220</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set working dir</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_SS_textbox_fn">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>250</y>
+        <width>171</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_project_name_overhead">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>250</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Project name</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_overlap">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>250</y>
+        <width>221</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Find overlapping IMS pixels</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_SS_micro_reso">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>170</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_im_res_label">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>150</y>
+        <width>171</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>IMS resolution (um / pixel)</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_SS_ims_reso">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>150</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>50</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_micro_res_label">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>170</y>
+        <width>211</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Microscopy resolution (um / pixel)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_pmaps_input">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>271</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>IMS indexed pixel maps (image)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_tform_overhead">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>120</y>
+        <width>411</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Microscopy transformations</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_img_res_overhead">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>130</y>
+        <width>231</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Image resolutions</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_keys_overhead">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>20</y>
+        <width>211</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>IMS pixel map keys (.csv)</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_source_key">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>40</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set source IMS key</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_source_key">
+      <property name="geometry">
+       <rect>
+        <x>690</x>
+        <y>40</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_textbox_target_key">
+      <property name="geometry">
+       <rect>
+        <x>690</x>
+        <y>70</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_button_target_key">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>70</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set target IMS key</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_SS_micro_res_label_2">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>20</y>
+        <width>211</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Microscopy resolution (um / pixel)</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_save_params">
+      <property name="geometry">
+       <rect>
+        <x>1010</x>
+        <y>220</y>
+        <width>131</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save IMS_SS params</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_SS_load_params">
+      <property name="geometry">
+       <rect>
+        <x>1150</x>
+        <y>220</y>
+        <width>131</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load IMS_SS params</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="TformImg">
      <attribute name="title">

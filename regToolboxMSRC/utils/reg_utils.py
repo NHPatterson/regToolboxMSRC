@@ -457,7 +457,7 @@ def transform_image(moving, transformationMap):
 
     transformix.SetMovingImage(moving)
     transformix.SetTransformParameterMap(transformationMap)
-    transformix.LogToConsoleOff()
+    transformix.LogToConsoleOn()
     moving_tformed = transformix.Execute()
     return (moving_tformed)
 
@@ -572,6 +572,31 @@ def prepare_output(wd, project_name, xml_params):
     #output parameters to XML file
     #output parameters to XML file
     write_param_xml(xml_params, opdir, ts, project_name)
+
+
+def RegImage_load(image, source_img_res):
+    if isinstance(image, type(sitk.Image())) == True:
+        image.SetSpacing((source_img_res, source_img_res))
+        return image
+    elif os.path.exists(image):
+        try:
+            image = RegImage(image, 'sitk', source_img_res)
+            return image
+        except:
+            print('invalid image file')
+
+
+def parameterFile_load(parameterFile):
+    if isinstance(parameterFile, type(sitk.ParameterMap())) == True:
+        return parameterFile
+    elif os.path.exists(parameterFile):
+        try:
+            parameterFile = sitk.ReadParameterFile(parameterFile)
+            return parameterFile
+        except:
+            print('invalid parameter file')
+    else:
+        print('parameter input is not valid')
 
 
 def reg_image_preprocess(image_fp, img_res, img_type='RGB_l'):

@@ -12,6 +12,7 @@ from regToolboxMSRC.register_MSM import register_MSM
 from regToolboxMSRC.register_SSM import register_SSM
 from regToolboxMSRC.register_SSS import register_SSS
 from regToolboxMSRC.register_MSS import register_MSS
+from regToolboxMSRC.find_IMS_overlap import IMS_ablation_overlap
 from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import ImsPixelMaps
 from regToolboxMSRC.utils.flx_utils import bruker_output_xmls
@@ -73,6 +74,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.IMS_data_fp = 'fp'
         self.IMS_wd = ''
+
+        self.IMS_SS_source_fp = 'fp'
+        self.IMS_SS_target_fp = 'fp'
+        self.IMS_SS_source_key_fp = 'fp'
+        self.IMS_SS_target_key_fp = 'fp'
+        self.IMS_SS_init_tform_fp = 'fp'
+        self.IMS_SS_nl_tform_fp = 'fp'
+        self.IMS_SS_wd = ''
 
         self.TFM_transforms = []
         self.TFM_source_fp = 'fp'
@@ -197,6 +206,26 @@ class MainWindow(QtWidgets.QMainWindow):
         #image type combo boxs
         self.ui.IMS_button_generate_map.clicked.connect(self.IMS_generate_maps)
 
+        ############# IMS_SS: image buttons
+        self.ui.IMS_SS_button_source.clicked.connect(self.IMS_SS_oc_src_img)
+        self.ui.IMS_SS_button_target.clicked.connect(self.IMS_SS_oc_tgt_img)
+
+        self.ui.IMS_SS_button_source_key.clicked.connect(
+            self.IMS_SS_oc_src_key)
+        self.ui.IMS_SS_button_target_key.clicked.connect(
+            self.IMS_SS_oc_tgt_key)
+
+        self.ui.IMS_SS_button_init_tform.clicked.connect(
+            self.IMS_SS_oc_init_tform)
+        self.ui.IMS_SS_button_nl_tform.clicked.connect(self.IMS_SS_oc_nl_tform)
+
+        #set wd button
+        self.ui.IMS_SS_button_wd.clicked.connect(self.IMS_SS_oc_wd)
+
+        self.ui.IMS_SS_button_overlap.clicked.connect(self.IMS_SS_overlap)
+
+        #image type combo boxs
+        self.ui.IMS_button_generate_map.clicked.connect(self.IMS_generate_maps)
         ############# HDR: image buttons
         self.ui.HDR_button_source.clicked.connect(self.HDR_oc_src_img)
         self.ui.HDR_button_target.clicked.connect(self.HDR_oc_tgt_img)
@@ -228,6 +257,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.MSS_save_params.clicked.connect(self.MSS_oc_save_param)
         self.ui.MSS_load_params.clicked.connect(self.MSS_oc_load_param)
+
+        ##TODO : add param loading/saving for IMS_SS
+        #self.ui.MSS_save_params.clicked.connect(self.MSS_oc_save_param)
+        #self.ui.MSS_load_params.clicked.connect(self.MSS_oc_load_param)
 
 ############# file path functions
 
@@ -1177,6 +1210,141 @@ class MainWindow(QtWidgets.QMainWindow):
 
             return
 
+############# MSS on click buttons
+
+    def IMS_SS_oc_src_img(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_SS_textbox_source.setText("source image not set...")
+        else:
+            self.ui.IMS_SS_textbox_source.setText(os.path.basename(file_name))
+            self.IMS_SS_source_fp = file_name
+
+    def IMS_SS_oc_tgt_img(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_SS_textbox_target.setText("target image 1 not set...")
+        else:
+            self.ui.IMS_SS_textbox_target.setText(os.path.basename(file_name))
+            self.IMS_SS_target_fp = file_name
+
+    def IMS_SS_oc_src_key(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_SS_textbox_source_key.setText("source key not set...")
+        else:
+            self.ui.IMS_SS_textbox_source_key.setText(
+                os.path.basename(file_name))
+            self.IMS_SS_source_key_fp = file_name
+
+    def IMS_SS_oc_tgt_key(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_SS_textbox_target_key.setText(
+                "target key 1 not set...")
+        else:
+            self.ui.IMS_SS_textbox_target_key.setText(
+                os.path.basename(file_name))
+            self.IMS_SS_target_key_fp = file_name
+
+    def IMS_SS_oc_init_tform(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_SS_textbox_init_tform.setText(
+                "initial transform not set...")
+        else:
+            self.ui.IMS_SS_textbox_init_tform.setText(
+                os.path.basename(file_name))
+            self.IMS_SS_init_tform_fp = file_name
+
+    def IMS_SS_oc_nl_tform(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_SS_textbox_nl_tform.setText(
+                "non-linear transform not set...")
+        else:
+            self.ui.IMS_SS_textbox_nl_tform.setText(
+                os.path.basename(file_name))
+            self.IMS_SS_nl_tform_fp = file_name
+
+    def IMS_SS_oc_wd(self):
+        wd_dir = self.openFileDirDialog()
+        if len(wd_dir) == 0:
+            self.ui.IMS_SS_textbox_wd.setText("working directory not set...")
+        else:
+            self.ui.IMS_SS_textbox_wd.setText(wd_dir)
+            self.IMS_SS_wd = wd_dir
+
+    def IMS_SS_overlap(self):
+        if os.path.exists(self.IMS_SS_source_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the source image!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_SS_target_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the target image!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_SS_source_key_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the source IMS key!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_SS_target_key_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the target IMS key!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_SS_init_tform_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the initial transform!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_SS_wd) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the working directory!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        ##non-linear transformation is optional
+        if os.path.exists(self.IMS_SS_nl_tform_fp) == False:
+            nl_tform = None
+        else:
+            print('non-linear transformation used')
+            nl_tform = self.IMS_SS_nl_tform_fp
+
+        source_res = str(self.ui.IMS_SS_src_reso.text())
+        target_res = str(self.ui.IMS_SS_tgt_reso.text())
+        project_name = str(self.ui.IMS_SS_textbox_fn.text())
+
+        ims_res = str(self.ui.IMS_SS_ims_reso.text())
+        micro_res = str(self.ui.IMS_SS_micro_reso.text())
+
+        IMS_ablation_overlap(
+            self.IMS_SS_source_fp,
+            self.IMS_SS_target_fp,
+            source_res,
+            target_res,
+            self.IMS_SS_source_key_fp,
+            self.IMS_SS_target_key_fp,
+            self.IMS_SS_init_tform_fp,
+            nl_tform,
+            ims_res=float(ims_res),
+            img_res=float(micro_res),
+            project_name=project_name,
+            wd=self.IMS_SS_wd)
+
+        QtWidgets.QMessageBox.question(
+            self, 'Overlap Calculation Finished',
+            "Check output directory for indexed overlap .csv",
+            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
 ############# HDR on click buttons
 
     def TFM_oc_src_img(self):
@@ -1242,7 +1410,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             QtWidgets.QMessageBox.question(
                 self, 'Registration Finished',
-                "Check output directory for XML files",
+                "Check output directory for transformed images",
                 QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
             return

@@ -1,0 +1,12 @@
+source_ims_fp : '/home/nhp/testing_data/overlap_test_data/Au_mubr_indexMask__imsres40_imgres1_pad20.mha'
+target_ims_fp : '/home/nhp/testing_data/overlap_test_data/mubr_lip_indexMask__imsres40_imgres1_pad20.mha'
+source_ims_res : 0.92
+target_ims_res : 0.92
+source_key_fp : '/home/nhp/testing_data/overlap_test_data/Au_mubr_IMS_mapping_key.csv'
+target_key_fp : '/home/nhp/testing_data/overlap_test_data/Au_mubr_IMS_mapping_key.csv'
+init_tform_fp : '/home/nhp/testing_data/overlap_test_data/20180411_09_31_06_mubr_au_to_lip_init_src_tgt_init.txt.txt'
+nl_tform_fp: '/home/nhp/testing_data/overlap_test_data/20180411_09_31_06_mubr_au_to_lipinit_src_tgt_nl.txt.txt'
+ims_res: 40
+img_res: 1
+project_name : 'overlap_test'
+wd : '/home/nhp/testing_data/overlap_test_data/'
