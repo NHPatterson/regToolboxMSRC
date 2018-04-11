@@ -133,17 +133,18 @@ class BrukerFlexROIs(object):
     def get_pg_rois_as_image(self):
         if self.polygons:
             zero_img = self.zero_image.copy()
-            
+
             for i in range(len(self.polygons)):
                 cc = cv2.fillConvexPoly(zero_img, self.polygons[i].astype(
                     np.int32), i + 1)
-    
+
             cc = np.transpose(cc)
             self.pg_cc_mask = sitk.GetImageFromArray(cc.astype(np.uint32))
             self.pg_cc_mask.SetSpacing((self.img_res, self.img_res))
-            
+
         else:
             raise ValueError('polygon coordinates have not been loaded')
+
 
 def mask_contours_to_boxes(binary_mask):
 
@@ -300,6 +301,7 @@ def output_flex_rects(boundingRect_df,
 #    bbox = stats.GetBoundingBox()
 #ims_rois.roi_mask.GetPixelIDTypeAsString()
 #sitk.WriteImage(ims_rois.roi_mask, '/home/nhp/test.mha',True)
+
 
 def bruker_output_xmls(source_fp,
                        target_fp,
