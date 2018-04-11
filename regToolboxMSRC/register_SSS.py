@@ -161,13 +161,13 @@ if __name__ == '__main__':
         dataMap['target_fp'],
         dataMap['target_res'],
         dataMap['source_mask_fp'],
-        dataMap['target_mask_fp'],
+        dataMap['target1_mask_fp'],
         dataMap['wd'],
         dataMap['source_img_type'],
         dataMap['target_img_type'],
-        dataMap['reg_model'],
+        dataMap['reg_model1'],
         dataMap['project_name'],
-        intermediate_output=dataMap['intermediate_output'],
+        intermediate_output=False,
         bounding_box=dataMap['bounding_box'],
         pass_in_project_name=True,
-        pass_in=None)
+        pass_in=dataMap['pass_in'])

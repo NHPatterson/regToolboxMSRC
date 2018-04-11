@@ -207,6 +207,7 @@ def get_mask_bb(mask_fp):
     lab_stats.Execute(mask, mask)
     bb = lab_stats.GetBoundingBox(1)
     x, y, w, h = bb[0], bb[2], bb[1] - bb[0], bb[3] - bb[2]
+    print('bounding box:', x, y, w, h)
     return x, y, w, h
 
 
@@ -286,24 +287,28 @@ def register_elx_(moving,
         else:
             mask_moving = sitk.ReadImage(moving_mask)
             mask_moving.SetSpacing(moving.GetSpacing())
+
+            if bounding_box == True:
+                moving_x, moving_y, moving_w, moving_h = get_mask_bb(moving_mask)
+    
+                mask_moving = mask_moving[moving_x:moving_x + moving_w, moving_y:
+                                          moving_y + moving_h]
+    
+                moving = moving[moving_x:moving_x + moving_w, moving_y:
+                                moving_y + moving_h]
+    
+                moving.SetOrigin((0, 0))
+                mask_moving.SetOrigin((0, 0))
+
+                bbox_dict.update({
+                    'moving_x': moving_x,
+                    'moving_y': moving_y,
+                    'moving_w': moving_w,
+                    'moving_h': moving_h,
+                    'moving_shape': moving_shape
+                })
+    
             selx.SetMovingMask(mask_moving)
-
-        if bounding_box == True:
-            moving_x, moving_y, moving_w, moving_h = get_mask_bb(moving_mask)
-            print(moving_x, moving_y, moving_w, moving_h)
-            mask_moving = mask_moving[moving_x:moving_x + moving_w, moving_y:
-                                      moving_y + moving_h]
-
-            moving = moving[moving_x:moving_x + moving_w, moving_y:
-                            moving_y + moving_h]
-            moving.SetOrigin((0, 0))
-            bbox_dict.update({
-                'moving_x': moving_x,
-                'moving_y': moving_y,
-                'moving_w': moving_w,
-                'moving_h': moving_h,
-                'moving_shape': moving_shape
-            })
 
     if fixed_mask == None:
         pass
@@ -316,24 +321,27 @@ def register_elx_(moving,
         else:
             mask_fixed = sitk.ReadImage(fixed_mask)
             mask_fixed.SetSpacing(fixed.GetSpacing())
+            if bounding_box == True:
+                fixed_x, fixed_y, fixed_w, fixed_h = get_mask_bb(fixed_mask)
+                print(fixed_x, fixed_y, fixed_w, fixed_h)
+    
+                mask_fixed = mask_fixed[fixed_x:fixed_x + fixed_w, fixed_y:
+                                        fixed_y + fixed_h]
+                fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:fixed_y + fixed_h]
+                fixed.SetOrigin((0, 0))
+                mask_fixed.SetOrigin((0, 0))
+
+                bbox_dict.update({
+                    'fixed_x': fixed_x,
+                    'fixed_y': fixed_y,
+                    'fixed_w': fixed_w,
+                    'fixed_h': fixed_h,
+                    'fixed_shape': fixed_shape
+                })
+            
             selx.SetMovingMask(mask_fixed)
 
-        if bounding_box == True:
-            fixed_x, fixed_y, fixed_w, fixed_h = get_mask_bb(fixed_mask)
-            print(fixed_x, fixed_y, fixed_w, fixed_h)
-
-            mask_fixed = mask_fixed[fixed_x:fixed_x + fixed_w, fixed_y:
-                                    fixed_y + fixed_h]
-            fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:fixed_y + fixed_h]
-            fixed.SetOrigin((0, 0))
-
-            bbox_dict.update({
-                'fixed_x': fixed_x,
-                'fixed_y': fixed_y,
-                'fixed_w': fixed_w,
-                'fixed_h': fixed_h,
-                'fixed_shape': fixed_shape
-            })
+        
         #mask_fixed.SetSpacing(fixed.GetSpacing())
         #selx.SetFixedMask(mask_fixed)
 
