@@ -13,6 +13,7 @@ from regToolboxMSRC.register_SSM import register_SSM
 from regToolboxMSRC.register_SSS import register_SSS
 from regToolboxMSRC.register_MSS import register_MSS
 from regToolboxMSRC.find_IMS_overlap import IMS_ablation_overlap
+from regToolboxMSRC.roi_extraction import extract_ROI_coordinates
 from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import ImsPixelMaps
 from regToolboxMSRC.utils.flx_utils import bruker_output_xmls
@@ -82,6 +83,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.IMS_SS_init_tform_fp = 'fp'
         self.IMS_SS_nl_tform_fp = 'fp'
         self.IMS_SS_wd = ''
+
+        self.IMS_CE_source_fp = 'fp'
+        self.IMS_CE_source_key_fp = 'fp'
+        self.IMS_CE_source_key_fp = 'fp'
+        self.IMS_CE_wd = ''
 
         self.TFM_transforms = []
         self.TFM_source_fp = 'fp'
@@ -223,6 +229,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.IMS_SS_button_wd.clicked.connect(self.IMS_SS_oc_wd)
 
         self.ui.IMS_SS_button_overlap.clicked.connect(self.IMS_SS_overlap)
+
+        ############# IMS_CE: image buttons
+        self.ui.IMS_CE_button_source.clicked.connect(self.IMS_CE_oc_src_img)
+
+        self.ui.IMS_CE_button_source_key.clicked.connect(
+            self.IMS_CE_oc_src_key)
+
+        self.ui.IMS_CE_button_annotations.clicked.connect(
+            self.IMS_CE_oc_annotations)
+
+        self.ui.IMS_CE_button_wd.clicked.connect(self.IMS_CE_oc_wd)
+
+        self.ui.IMS_CE_button_extract_coords.clicked.connect(
+            self.IMS_CE_extraction)
 
         #image type combo boxs
         self.ui.IMS_button_generate_map.clicked.connect(self.IMS_generate_maps)
@@ -1210,7 +1230,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             return
 
-############# MSS on click buttons
+############# IMS_SS on click buttons
 
     def IMS_SS_oc_src_img(self):
         file_name = self.openFileNameDialog()
@@ -1343,6 +1363,87 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.question(
             self, 'Overlap Calculation Finished',
             "Check output directory for indexed overlap .csv",
+            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
+############# IMS_CE on click buttons
+
+    def IMS_CE_oc_src_img(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_CE_textbox_source.setText("source image not set...")
+        else:
+            self.ui.IMS_CE_textbox_source.setText(os.path.basename(file_name))
+            self.IMS_CE_source_fp = file_name
+
+    def IMS_CE_oc_src_key(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_CE_textbox_source_key.setText("source key not set...")
+        else:
+            self.ui.IMS_CE_textbox_source_key.setText(
+                os.path.basename(file_name))
+            self.IMS_CE_source_key_fp = file_name
+
+    def IMS_CE_oc_annotations(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.IMS_CE_textbox_annotations.setText(
+                "annotations file not set...")
+        else:
+            self.ui.IMS_CE_textbox_annotations.setText(
+                os.path.basename(file_name))
+            self.IMS_CE_annotations_fp = file_name
+
+    def IMS_CE_oc_wd(self):
+        wd_dir = self.openFileDirDialog()
+        if len(wd_dir) == 0:
+            self.ui.IMS_CE_textbox_wd.setText("working directory not set...")
+        else:
+            self.ui.IMS_CE_textbox_wd.setText(wd_dir)
+            self.IMS_CE_wd = wd_dir
+
+    def IMS_CE_extraction(self):
+        if os.path.exists(self.IMS_CE_source_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the source image!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_CE_source_key_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the source IMS key!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_CE_annotations_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the initial transform!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        if os.path.exists(self.IMS_CE_wd) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!', "You haven't set the working directory!",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+
+        project_name = str(self.ui.IMS_CE_textbox_fn.text())
+
+        ims_res = str(self.ui.IMS_CE_ims_reso.text())
+        micro_res = str(self.ui.IMS_CE_micro_reso.text())
+
+        extract_ROI_coordinates(
+            self.IMS_CE_source_fp,
+            self.IMS_CE_annotations_fp,
+            self.IMS_CE_source_key_fp,
+            project_name,
+            ims_res=float(ims_res),
+            img_res=float(micro_res),
+            wd=self.IMS_CE_wd)
+
+        QtWidgets.QMessageBox.question(
+            self, 'ROI extraction complete',
+            "Check output directory for ROI overlap .csv",
             QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
 ############# HDR on click buttons

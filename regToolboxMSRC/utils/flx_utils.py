@@ -20,7 +20,7 @@ from matplotlib import cm
 from regToolboxMSRC.utils.reg_utils import register_elx_, reg_image_preprocess, parameter_files, transform_mc_image_sitk
 
 
-class BrukerFlexROIs(object):
+class ROIhandler(object):
     def __init__(self, roi_image_fp, img_res, is_mask=False):
         self.type = 'ROI Container'
         self.roi_image_fp = roi_image_fp
@@ -47,13 +47,17 @@ class BrukerFlexROIs(object):
 
     ###grabs polygonal ijrois
     def get_polygons_ijroi(self, ij_rois_fp):
-
-        rois = ijroi.read_roi_zip(ij_rois_fp)
+        fn, fe = os.path.splitext(ij_rois_fp)
+        print(fe)
+        if fe == '.zip':
+            rois = ijroi.read_roi_zip(ij_rois_fp)
+        if fe == '.roi':
+            rois = ijroi.read_roi(open(ij_rois_fp, "rb"))
         polyallcoords = [poly[1] for poly in rois]
         self.polygons = polyallcoords
 
     ##this function draws the mask needed for general FI rois
-    def draw_rect_mask(self, return_np=False):
+    def draw_rect_mask(self):
         if len(self.roi_corners) == 0:
             raise ValueError('Rois have not been generated')
 
@@ -72,11 +76,7 @@ class BrukerFlexROIs(object):
                     (self.roi_corners[i][1][1], self.roi_corners[i][1][0]),
                     (255),
                     thickness=-1)
-
-        if return_np == True:
-            self.np_roi_mask = filled.astype(np.uint8)
-
-        self.roi_mask = sitk.GetImageFromArray(filled.astype(np.uint8))
+        self.roi_mask = sitk.GetImageFromArray(filled.astype(np.int8))
         self.roi_mask.SetSpacing((self.img_res, self.img_res))
 
     ##this function slices all the rois into sitk images
@@ -93,7 +93,12 @@ class BrukerFlexROIs(object):
         self.roi_slices = []
         self.roi_slices.append(roi_slices)
 
-    def get_index_and_overlap(self, ims_index_map_fp, ims_res, img_res):
+    def get_index_and_overlap(self,
+                              ims_index_map_fp,
+                              ims_res,
+                              img_res,
+                              use_key=False,
+                              key_filepath=None):
         if self.polygons:
             ims_idx_np = sitk.GetArrayFromImage(
                 sitk.ReadImage(ims_index_map_fp))
@@ -117,15 +122,35 @@ class BrukerFlexROIs(object):
                 uniques, counts = np.unique(whereresult, return_counts=True)
 
                 df_intermed = pd.DataFrame({
-                    'roi_index': i + 1,
-                    'ims_index': uniques,
-                    'overlap': counts / scale_factor**2
+                    'roi_index':
+                    i + 1,
+                    'ims_index':
+                    uniques,
+                    'percentage':
+                    counts / scale_factor**2
                 })
 
                 dfs.append(df_intermed)
 
             df = pd.concat(dfs)
             self.rois_ims_indexed = df
+            if use_key == True and key_filepath != None:
+                key = pd.read_csv(key_filepath, index_col=0)
+                self.rois_ims_indexed['x_original'] = key.loc[np.searchsorted(
+                    key.index.values, self.rois_ims_indexed['ims_index']
+                    .values), ['x']].values
+
+                self.rois_ims_indexed['y_original'] = key.loc[np.searchsorted(
+                    key.index.values, self.rois_ims_indexed['ims_index']
+                    .values), ['y']].values
+
+                self.rois_ims_indexed['x_minimized'] = key.loc[np.searchsorted(
+                    key.index.values, self.rois_ims_indexed['ims_index']
+                    .values), ['x_minimized']].values
+
+                self.rois_ims_indexed['y_minimized'] = key.loc[np.searchsorted(
+                    key.index.values, self.rois_ims_indexed['ims_index']
+                    .values), ['y_minimized']].values
 
         else:
             raise ValueError('polygon coordinates have not been loaded')
@@ -280,7 +305,7 @@ def output_flex_rects(boundingRect_df,
     f.close()
 
 
-#ims_rois = BrukerFlexROIs('/home/nhp/testing_data/slide2_s3_BF_0001.jpg',1,is_mask=True)
+#ims_rois = ROIhandler('/home/nhp/testing_data/slide2_s3_BF_0001.jpg',1,is_mask=True)
 #ims_rois.get_rectangles_ijroi('/home/nhp/testing_data/slide2_s3_rois.zip')
 #ims_rois.draw_rect_mask()
 #
@@ -337,7 +362,7 @@ def bruker_output_xmls(source_fp,
         logging=True)
 
     #rois:
-    rois = BrukerFlexROIs(source_fp, 1, is_mask=False)
+    rois = ROIhandler(source_fp, 1, is_mask=False)
     rois.get_rectangles_ijroi(ijroi_fp)
     rois.draw_rect_mask(return_np=False)
     rois = transform_mc_image_sitk(
@@ -375,10 +400,10 @@ def bruker_output_xmls(source_fp,
 
 
 ##testing:
-#fp_moving = 'D:/testing_data/BrukerFlexROIs_testing/171127 mouse liver malaria_BF_set1sec2.jpg'
-#fp_fixed = 'D:/testing_data/BrukerFlexROIs_testing/171127 mouse liver malaria_BF_set1sec2_0001.jpg'
-#wd = 'D:/testing_data/BrukerFlexROIs_testing'
-#ijroi_fp = 'D:/testing_data/BrukerFlexROIs_testing/lesion_rois.zip'
+#fp_moving = 'D:/testing_data/ROIhandler_testing/171127 mouse liver malaria_BF_set1sec2.jpg'
+#fp_fixed = 'D:/testing_data/ROIhandler_testing/171127 mouse liver malaria_BF_set1sec2_0001.jpg'
+#wd = 'D:/testing_data/ROIhandler_testing'
+#ijroi_fp = 'D:/testing_data/ROIhandler_testing/lesion_rois.zip'
 #project_name = 'FI_rois_malaria_testing'
 #ims_resolution = 20
 #ims_method = "parameter_file"

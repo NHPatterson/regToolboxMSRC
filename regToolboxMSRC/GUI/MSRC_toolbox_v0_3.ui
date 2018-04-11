@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="SingleSecMulti">
      <attribute name="title">
@@ -1684,19 +1684,6 @@ color: rgb(255, 255, 255);</string>
      <attribute name="title">
       <string>IMS processing</string>
      </attribute>
-     <widget class="QLabel" name="IMS_Imageloading_overhead">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>131</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Loading IMS data</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="IMS_button_source">
       <property name="geometry">
        <rect>
@@ -1784,7 +1771,7 @@ color: rgb(255, 255, 255);</string>
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>240</y>
+        <y>250</y>
         <width>201</width>
         <height>23</height>
        </rect>
@@ -1823,7 +1810,7 @@ color: rgb(255, 255, 255);</string>
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>170</y>
+        <y>190</y>
         <width>301</width>
         <height>21</height>
        </rect>
@@ -1840,9 +1827,9 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QPushButton" name="IMS_button_wd">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>170</y>
-        <width>91</width>
+        <x>0</x>
+        <y>190</y>
+        <width>101</width>
         <height>23</height>
        </rect>
       </property>
@@ -1854,7 +1841,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>200</y>
+        <y>220</y>
         <width>81</width>
         <height>16</height>
        </rect>
@@ -1867,10 +1854,254 @@ font: 75 8pt &quot;Arial&quot;;</string>
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>200</y>
+        <y>220</y>
         <width>171</width>
         <height>20</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="HDR_Imageloading_overhead_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>411</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Pixel map, registration mask, and map key genration</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="HDR_Imageloading_overhead_3">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>20</y>
+        <width>401</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Coordinate extraction from ImageJ ROIs</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_CE_textbox_source">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>40</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_CE_button_source">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>40</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set source image</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_CE_textbox_source_key">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>70</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_CE_button_source_key">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>70</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set source IMS key</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_CE_textbox_annotations">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>100</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_CE_button_annotations">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>100</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set IJ ROIs</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_projectname_overhead_2">
+      <property name="geometry">
+       <rect>
+        <x>590</x>
+        <y>220</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Project name</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_CE_textbox_fn">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>220</y>
+        <width>171</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_img_res_label_2">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>160</y>
+        <width>231</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Microscopy resolution (um / pixel)</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_CE_ims_reso">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>130</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>50</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="IMS_CE_micro_reso">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>160</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_ims_res_label_2">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>130</y>
+        <width>211</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>IMS resolution (um / pixel)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="IMS_CE_textbox_wd">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>190</y>
+        <width>301</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(140, 140, 140);
+color: rgb(255, 255, 255);
+font: 75 8pt &quot;Arial&quot;;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_CE_button_wd">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>190</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set working dir</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="IMS_CE_button_extract_coords">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>250</y>
+        <width>201</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Extract ROI coords from key</string>
       </property>
      </widget>
     </widget>
