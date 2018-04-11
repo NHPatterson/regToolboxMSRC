@@ -244,8 +244,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.IMS_CE_button_extract_coords.clicked.connect(
             self.IMS_CE_extraction)
 
-        #image type combo boxs
-        self.ui.IMS_button_generate_map.clicked.connect(self.IMS_generate_maps)
         ############# HDR: image buttons
         self.ui.HDR_button_source.clicked.connect(self.HDR_oc_src_img)
         self.ui.HDR_button_target.clicked.connect(self.HDR_oc_tgt_img)
@@ -1417,7 +1415,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if os.path.exists(self.IMS_CE_annotations_fp) == False:
             QtWidgets.QMessageBox.question(
-                self, 'Error!', "You haven't set the initial transform!",
+                self, 'Error!', "You haven't set the annotations file!",
                 QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
 
