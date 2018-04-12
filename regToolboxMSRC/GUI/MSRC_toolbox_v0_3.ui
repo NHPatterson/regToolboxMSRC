@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1432</width>
+    <width>1508</width>
     <height>385</height>
    </rect>
   </property>
@@ -19,12 +19,12 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1411</width>
+      <width>1491</width>
       <height>351</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="SingleSecMulti">
      <attribute name="title">
@@ -46,9 +46,9 @@
      <widget class="QPushButton" name="SSM_button_source">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>40</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -62,9 +62,9 @@
      <widget class="QPushButton" name="SSM_button_target2">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>100</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -75,9 +75,9 @@
      <widget class="QPushButton" name="SSM_button_wd">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>140</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -88,7 +88,7 @@
      <widget class="QLabel" name="SSM_textbox_source">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>130</x>
         <y>40</y>
         <width>261</width>
         <height>21</height>
@@ -106,7 +106,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="SSM_textbox_target2">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>130</x>
         <y>100</y>
         <width>261</width>
         <height>21</height>
@@ -124,7 +124,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="SSM_textbox_wd">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>130</x>
         <y>140</y>
         <width>301</width>
         <height>21</height>
@@ -173,7 +173,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>490</x>
         <y>20</y>
-        <width>71</width>
+        <width>81</width>
         <height>16</height>
        </rect>
       </property>
@@ -184,7 +184,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLineEdit" name="SSM_textbox_fn">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>130</x>
         <y>220</y>
         <width>171</width>
         <height>20</height>
@@ -194,7 +194,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="SSM_projectname_overhead">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>50</x>
         <y>220</y>
         <width>81</width>
         <height>16</height>
@@ -209,9 +209,12 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>71</width>
+        <width>111</width>
         <height>16</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
       </property>
       <property name="text">
        <string>Image Loading</string>
@@ -251,7 +254,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>580</x>
         <y>20</y>
-        <width>101</width>
+        <width>131</width>
         <height>16</height>
        </rect>
       </property>
@@ -262,9 +265,9 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QPushButton" name="SSM_button_target1">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>70</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -275,7 +278,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="SSM_textbox_target1">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>130</x>
         <y>70</y>
         <width>261</width>
         <height>21</height>
@@ -417,7 +420,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>20</x>
         <y>250</y>
-        <width>271</width>
+        <width>301</width>
         <height>17</height>
        </rect>
       </property>
@@ -431,10 +434,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="SSM_type_img_res_label">
       <property name="geometry">
        <rect>
-        <x>340</x>
+        <x>300</x>
         <y>20</y>
-        <width>141</width>
-        <height>16</height>
+        <width>181</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -444,7 +447,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="SSM_src_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>400</x>
         <y>39</y>
         <width>41</width>
         <height>21</height>
@@ -457,7 +460,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="SSM_tgt1_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>400</x>
         <y>70</y>
         <width>41</width>
         <height>21</height>
@@ -470,7 +473,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="SSM_tgt2_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>400</x>
         <y>100</y>
         <width>41</width>
         <height>21</height>
@@ -516,7 +519,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -566,7 +569,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="MSM_tgt2_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>410</x>
         <y>100</y>
         <width>41</width>
         <height>21</height>
@@ -581,7 +584,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>100</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -640,7 +643,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="MSM_tgt1_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>410</x>
         <y>70</y>
         <width>41</width>
         <height>21</height>
@@ -668,7 +671,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>20</x>
         <y>250</y>
-        <width>271</width>
+        <width>311</width>
         <height>17</height>
        </rect>
       </property>
@@ -684,7 +687,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>580</x>
         <y>20</y>
-        <width>101</width>
+        <width>131</width>
         <height>16</height>
        </rect>
       </property>
@@ -695,7 +698,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSM_textbox_wd">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>140</y>
         <width>301</width>
         <height>21</height>
@@ -715,7 +718,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>490</x>
         <y>20</y>
-        <width>71</width>
+        <width>81</width>
         <height>16</height>
        </rect>
       </property>
@@ -726,7 +729,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="MSM_textbox_target1">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>140</x>
         <y>70</y>
         <width>261</width>
         <height>21</height>
@@ -744,7 +747,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSM_textbox_target2">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>140</x>
         <y>100</y>
         <width>261</width>
         <height>21</height>
@@ -839,7 +842,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSM_textbox_source">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>140</x>
         <y>40</y>
         <width>261</width>
         <height>21</height>
@@ -872,7 +875,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>70</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -898,7 +901,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>140</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -909,7 +912,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="MSM_src_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>410</x>
         <y>39</y>
         <width>41</width>
         <height>21</height>
@@ -922,9 +925,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSM_type_img_res_label">
       <property name="geometry">
        <rect>
-        <x>340</x>
+        <x>310</x>
         <y>20</y>
-        <width>141</width>
+        <width>181</width>
         <height>16</height>
        </rect>
       </property>
@@ -937,9 +940,12 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>71</width>
+        <width>111</width>
         <height>16</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
       </property>
       <property name="text">
        <string>Image Loading</string>
@@ -1010,9 +1016,12 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>71</width>
+        <width>121</width>
         <height>16</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
       </property>
       <property name="text">
        <string>Image Loading</string>
@@ -1023,7 +1032,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>570</x>
         <y>20</y>
-        <width>101</width>
+        <width>131</width>
         <height>16</height>
        </rect>
       </property>
@@ -1036,7 +1045,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1049,7 +1058,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>570</x>
         <y>90</y>
-        <width>91</width>
+        <width>111</width>
         <height>23</height>
        </rect>
       </property>
@@ -1060,7 +1069,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="SSS_textbox_target">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>90</y>
         <width>261</width>
         <height>21</height>
@@ -1093,7 +1102,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>480</x>
         <y>20</y>
-        <width>71</width>
+        <width>81</width>
         <height>16</height>
        </rect>
       </property>
@@ -1119,7 +1128,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>90</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1155,7 +1164,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>140</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1166,7 +1175,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="SSS_textbox_wd">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>140</y>
         <width>301</width>
         <height>21</height>
@@ -1186,7 +1195,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>570</x>
         <y>40</y>
-        <width>91</width>
+        <width>111</width>
         <height>23</height>
        </rect>
       </property>
@@ -1197,7 +1206,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="SSS_textbox_source">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>40</y>
         <width>261</width>
         <height>21</height>
@@ -1263,7 +1272,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="SSS_tgt_reso">
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>410</x>
         <y>90</y>
         <width>41</width>
         <height>21</height>
@@ -1276,7 +1285,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="SSS_src_reso">
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>410</x>
         <y>39</y>
         <width>41</width>
         <height>21</height>
@@ -1289,9 +1298,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="SSS_type_img_res_label">
       <property name="geometry">
        <rect>
-        <x>330</x>
+        <x>300</x>
         <y>20</y>
-        <width>141</width>
+        <width>181</width>
         <height>16</height>
        </rect>
       </property>
@@ -1333,7 +1342,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="MSS_target_img_type">
       <property name="geometry">
        <rect>
-        <x>480</x>
+        <x>510</x>
         <y>92</y>
         <width>69</width>
         <height>20</height>
@@ -1359,7 +1368,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QComboBox" name="MSS_source_img_type">
       <property name="geometry">
        <rect>
-        <x>480</x>
+        <x>510</x>
         <y>42</y>
         <width>69</width>
         <height>20</height>
@@ -1372,7 +1381,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSS_textbox_wd">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>140</y>
         <width>301</width>
         <height>21</height>
@@ -1390,9 +1399,9 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="MSS_type_overhead">
       <property name="geometry">
        <rect>
-        <x>480</x>
+        <x>510</x>
         <y>20</y>
-        <width>71</width>
+        <width>81</width>
         <height>16</height>
        </rect>
       </property>
@@ -1415,7 +1424,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1426,9 +1435,9 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QPushButton" name="MSS_button_src_mask">
       <property name="geometry">
        <rect>
-        <x>570</x>
+        <x>600</x>
         <y>40</y>
-        <width>91</width>
+        <width>111</width>
         <height>23</height>
        </rect>
       </property>
@@ -1439,7 +1448,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="MSS_textbox_target">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>90</y>
         <width>261</width>
         <height>21</height>
@@ -1457,9 +1466,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QPushButton" name="MSS_button_register_images">
       <property name="geometry">
        <rect>
-        <x>360</x>
+        <x>330</x>
         <y>260</y>
-        <width>161</width>
+        <width>191</width>
         <height>23</height>
        </rect>
       </property>
@@ -1472,7 +1481,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>140</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1483,9 +1492,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSS_setmasks_overhead">
       <property name="geometry">
        <rect>
-        <x>570</x>
+        <x>600</x>
         <y>20</y>
-        <width>101</width>
+        <width>131</width>
         <height>16</height>
        </rect>
       </property>
@@ -1498,7 +1507,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>90</y>
-        <width>91</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -1509,9 +1518,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QPushButton" name="MSS_button_tgt_mask">
       <property name="geometry">
        <rect>
-        <x>570</x>
+        <x>600</x>
         <y>90</y>
-        <width>91</width>
+        <width>111</width>
         <height>23</height>
        </rect>
       </property>
@@ -1522,7 +1531,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSS_textbox_source">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>40</y>
         <width>261</width>
         <height>21</height>
@@ -1542,9 +1551,12 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>71</width>
+        <width>121</width>
         <height>16</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
       </property>
       <property name="text">
        <string>Image Loading</string>
@@ -1617,7 +1629,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="MSS_src_reso">
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>410</x>
         <y>39</y>
         <width>41</width>
         <height>21</height>
@@ -1630,7 +1642,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="MSS_tgt_reso">
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>410</x>
         <y>90</y>
         <width>41</width>
         <height>21</height>
@@ -1643,10 +1655,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="MSS_type_img_res_label">
       <property name="geometry">
        <rect>
-        <x>330</x>
+        <x>300</x>
         <y>20</y>
-        <width>141</width>
-        <height>16</height>
+        <width>181</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
