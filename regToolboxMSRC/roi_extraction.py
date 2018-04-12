@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 13 09:31:56 2017
-
 @author: pattenh1
 """
 import os

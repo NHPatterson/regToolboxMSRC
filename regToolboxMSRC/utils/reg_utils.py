@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 17 13:48:04 2017
-
 @author: pattenh1
 """
 

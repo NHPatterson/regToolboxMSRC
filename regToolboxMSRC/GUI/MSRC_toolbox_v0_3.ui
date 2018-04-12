@@ -20,11 +20,11 @@
       <x>10</x>
       <y>10</y>
       <width>1411</width>
-      <height>321</height>
+      <height>351</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="SingleSecMulti">
      <attribute name="title">
@@ -2906,7 +2906,7 @@ color: rgb(255, 255, 255);</string>
        <rect>
         <x>10</x>
         <y>31</y>
-        <width>101</width>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
@@ -2920,9 +2920,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="TFM_type_img_res_label_2">
       <property name="geometry">
        <rect>
-        <x>340</x>
+        <x>360</x>
         <y>11</y>
-        <width>141</width>
+        <width>181</width>
         <height>16</height>
        </rect>
       </property>
@@ -2949,7 +2949,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="TFM_textbox_source">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>140</x>
         <y>31</y>
         <width>261</width>
         <height>21</height>
@@ -2967,7 +2967,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="TFM_src_reso">
       <property name="geometry">
        <rect>
-        <x>390</x>
+        <x>410</x>
         <y>30</y>
         <width>41</width>
         <height>21</height>
@@ -2981,8 +2981,8 @@ color: rgb(255, 255, 255);</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>110</y>
-        <width>121</width>
+        <y>130</y>
+        <width>151</width>
         <height>23</height>
        </rect>
       </property>
@@ -2997,7 +2997,7 @@ color: rgb(255, 255, 255);</string>
       <property name="geometry">
        <rect>
         <x>260</x>
-        <y>270</y>
+        <y>290</y>
         <width>201</width>
         <height>23</height>
        </rect>
@@ -3010,7 +3010,7 @@ color: rgb(255, 255, 255);</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>140</y>
+        <y>160</y>
         <width>1021</width>
         <height>91</height>
        </rect>
@@ -3019,10 +3019,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="TFM_Imageloading_overhead_3">
       <property name="geometry">
        <rect>
-        <x>910</x>
-        <y>120</y>
-        <width>121</width>
-        <height>16</height>
+        <x>880</x>
+        <y>140</y>
+        <width>151</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -3035,8 +3035,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="TFM_projectname_overhead_2">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>240</y>
+        <x>50</x>
+        <y>260</y>
         <width>81</width>
         <height>16</height>
        </rect>
@@ -3048,8 +3048,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="TFM_textbox_fn">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>240</y>
+        <x>140</x>
+        <y>260</y>
         <width>171</width>
         <height>20</height>
        </rect>
@@ -3058,8 +3058,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="TFM_textbox_wd">
       <property name="geometry">
        <rect>
-        <x>110</x>
-        <y>70</y>
+        <x>140</x>
+        <y>90</y>
         <width>301</width>
         <height>21</height>
        </rect>
@@ -3077,13 +3077,96 @@ font: 75 8pt &quot;Arial&quot;;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>70</y>
-        <width>91</width>
+        <y>90</y>
+        <width>121</width>
         <height>23</height>
        </rect>
       </property>
       <property name="text">
        <string>Set working dir</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="TFM_button_ijrois">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">gridline-color: rgb(0, 0, 0);</string>
+      </property>
+      <property name="text">
+       <string>Set ImageJ ROIs</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="TFM_textbox_ijrois">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>60</y>
+        <width>261</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(86, 86, 86);
+font: italic 8pt &quot;Arial&quot;;
+color: rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="TFM_roi_type">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>30</y>
+        <width>101</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>image</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>ijroi</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="TFM_type_img_res_label_3">
+      <property name="geometry">
+       <rect>
+        <x>570</x>
+        <y>10</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Image Type </string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="HDR_roi_names_label_4">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>60</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 75 italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
+      </property>
+      <property name="text">
+       <string>optional</string>
       </property>
      </widget>
     </widget>

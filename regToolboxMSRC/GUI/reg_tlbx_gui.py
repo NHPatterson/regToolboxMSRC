@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  2 15:32:32 2017
-
 @author: pattenh1
 """
 
@@ -17,6 +15,7 @@ from regToolboxMSRC.roi_extraction import extract_ROI_coordinates
 from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import ImsPixelMaps
 from regToolboxMSRC.bruker_hist_directed import bruker_output_xmls
+from regToolboxMSRC.arbitrary_img_tform import arbitrary_transform
 import SimpleITK as sitk
 import pkg_resources
 import time
@@ -93,6 +92,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.TFM_transforms = []
         self.TFM_source_fp = 'fp'
+        self.TFM_ij_rois_fp = None
         self.TFM_wd = ''
 
         #load in data stored in package
@@ -258,6 +258,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         ############# TFM: image buttons
         self.ui.TFM_button_source.clicked.connect(self.TFM_oc_src_img)
+        self.ui.TFM_button_ijrois.clicked.connect(self.TFM_oc_ijrois)
+
         self.ui.TFM_button_transform.clicked.connect(self.TFM_oc_transform)
 
         ##set wd button
@@ -1460,6 +1462,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.TFM_textbox_source.setText(os.path.basename(file_name))
             self.TFM_source_fp = file_name
 
+    def TFM_oc_ijrois(self):
+        file_name = self.openFileNameDialog()
+        if len(file_name) == 0:
+            self.ui.TFM_textbox_ijrois.setText("source image not set...")
+        else:
+            self.ui.TFM_textbox_ijrois.setText(os.path.basename(file_name))
+            self.TFM_ij_rois_fp = file_name
+
     def TFM_oc_wd(self):
         wd_dir = self.openFileDirDialog()
         if len(wd_dir) == 0:
@@ -1473,9 +1483,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             return
         else:
-            tform = sitk.ReadParameterFile(file_name)
-            self.TFM_transforms.append(tform)
-            self.ui.TFM_tform_list.addItem(file_name)
+            try:
+                tform = sitk.ReadParameterFile(file_name)
+                self.TFM_transforms.append(tform)
+                self.ui.TFM_tform_list.addItem(file_name)
+            except:
+                QtWidgets.QMessageBox.question(
+                    self, 'Error!', "The loaded parameter is invalid",
+                    QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def TFM_register(self):
         if os.path.exists(self.TFM_source_fp) == False:
@@ -1496,10 +1511,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
 
+        elif str(self.ui.TFM_src_reso.text()) == 'ijroi' and os.path.exists(
+                self.TFM_source_fp) == False:
+            QtWidgets.QMessageBox.question(
+                self, 'Error!',
+                "The ImageJ ROI must be set if ijroi is the roi_type",
+                QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
         else:
             src_reso = str(self.ui.TFM_src_reso.text())
 
             project_name = str(self.ui.TFM_textbox_fn.text())
+
+            selected_roi_type = self.ui.TFM_roi_type.currentText()
 
             print("Starting Registration...")
             print("Project Name: " + project_name)
@@ -1510,8 +1534,16 @@ class MainWindow(QtWidgets.QMainWindow):
             print(
                 "Source -> Target uing registration model : flexImaging correction"
             )
-            transform_from_gui(self.TFM_source_fp, self.TFM_transforms,
-                               self.TFM_wd, src_reso, project_name)
+
+            arbitrary_transform(
+                self.TFM_source_fp,
+                src_reso,
+                self.TFM_transforms,
+                wd=self.TFM_wd,
+                src_type=selected_roi_type,
+                ij_rois_fp=self.TFM_ij_rois_fp,
+                project_name=project_name,
+                write_image=True)
 
             QtWidgets.QMessageBox.question(
                 self, 'Registration Finished',
