@@ -289,14 +289,15 @@ def register_elx_(moving,
             mask_moving.SetSpacing(moving.GetSpacing())
 
             if bounding_box == True:
-                moving_x, moving_y, moving_w, moving_h = get_mask_bb(moving_mask)
-    
-                mask_moving = mask_moving[moving_x:moving_x + moving_w, moving_y:
-                                          moving_y + moving_h]
-    
+                moving_x, moving_y, moving_w, moving_h = get_mask_bb(
+                    moving_mask)
+
+                mask_moving = mask_moving[moving_x:moving_x + moving_w,
+                                          moving_y:moving_y + moving_h]
+
                 moving = moving[moving_x:moving_x + moving_w, moving_y:
                                 moving_y + moving_h]
-    
+
                 moving.SetOrigin((0, 0))
                 mask_moving.SetOrigin((0, 0))
 
@@ -307,7 +308,7 @@ def register_elx_(moving,
                     'moving_h': moving_h,
                     'moving_shape': moving_shape
                 })
-    
+
             selx.SetMovingMask(mask_moving)
 
     if fixed_mask == None:
@@ -324,10 +325,11 @@ def register_elx_(moving,
             if bounding_box == True:
                 fixed_x, fixed_y, fixed_w, fixed_h = get_mask_bb(fixed_mask)
                 print(fixed_x, fixed_y, fixed_w, fixed_h)
-    
+
                 mask_fixed = mask_fixed[fixed_x:fixed_x + fixed_w, fixed_y:
                                         fixed_y + fixed_h]
-                fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:fixed_y + fixed_h]
+                fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:
+                              fixed_y + fixed_h]
                 fixed.SetOrigin((0, 0))
                 mask_fixed.SetOrigin((0, 0))
 
@@ -338,10 +340,9 @@ def register_elx_(moving,
                     'fixed_h': fixed_h,
                     'fixed_shape': fixed_shape
                 })
-            
+
             selx.SetMovingMask(mask_fixed)
 
-        
         #mask_fixed.SetSpacing(fixed.GetSpacing())
         #selx.SetFixedMask(mask_fixed)
 

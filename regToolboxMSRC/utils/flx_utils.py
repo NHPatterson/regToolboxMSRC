@@ -9,15 +9,12 @@ import os
 import cv2
 import SimpleITK as sitk
 import ijroi
-import datetime
-import time
 import numpy as np
 import pandas as pd
 import lxml.etree
 import lxml.builder
 import matplotlib
 from matplotlib import cm
-from regToolboxMSRC.utils.reg_utils import register_elx_, reg_image_preprocess, parameter_files, transform_mc_image_sitk
 
 
 class ROIhandler(object):
@@ -76,8 +73,8 @@ class ROIhandler(object):
                     (self.roi_corners[i][1][1], self.roi_corners[i][1][0]),
                     (255),
                     thickness=-1)
-        self.roi_mask = sitk.GetImageFromArray(filled.astype(np.int8))
-        self.roi_mask.SetSpacing((self.img_res, self.img_res))
+        self.box_mask = sitk.GetImageFromArray(filled.astype(np.int8))
+        self.box_mask.SetSpacing((self.img_res, self.img_res))
 
     ##this function slices all the rois into sitk images
     def get_rect_rois_as_images(self, image_fp):
@@ -155,20 +152,47 @@ class ROIhandler(object):
         else:
             raise ValueError('polygon coordinates have not been loaded')
 
-    def get_pg_rois_as_image(self):
+    def draw_polygon_mask(self, binary_mask=True, flip_xy=True):
         if self.polygons:
             zero_img = self.zero_image.copy()
 
             for i in range(len(self.polygons)):
-                cc = cv2.fillConvexPoly(zero_img, self.polygons[i].astype(
-                    np.int32), i + 1)
 
-            cc = np.transpose(cc)
-            self.pg_cc_mask = sitk.GetImageFromArray(cc.astype(np.uint32))
-            self.pg_cc_mask.SetSpacing((self.img_res, self.img_res))
+                draw_polygons = self.polygons[i].astype(np.int32)
+                if flip_xy == True:
+                    draw_polygons[:, [0, 1]] = draw_polygons[:, [1, 0]]
+                if binary_mask == True:
+                    cc = cv2.fillConvexPoly(
+                        zero_img, draw_polygons, 255, lineType=4)
+                    self.pg_mask = sitk.GetImageFromArray(cc.astype(np.uint8))
+
+                else:
+                    cc = cv2.fillConvexPoly(
+                        zero_img, draw_polygons, i + 1, lineType=4)
+                    self.pg_mask = sitk.GetImageFromArray(cc.astype(np.uint32))
+
+            #cc = np.transpose(cc)
+            self.pg_mask.SetSpacing((self.img_res, self.img_res))
 
         else:
             raise ValueError('polygon coordinates have not been loaded')
+
+
+def mask_contours_to_polygons(binary_mask, arcLenPercent=0.05):
+
+    ret, threshsrc = cv2.threshold(binary_mask, 1, 256, 0)
+    im2, contours, hierarchy = cv2.findContours(threshsrc, cv2.RETR_EXTERNAL,
+                                                cv2.CHAIN_APPROX_NONE)
+
+    approxPolygon = []
+
+    for i in range(len(contours)):
+        cnt = contours[i]
+        epsilon = arcLenPercent * cv2.arcLength(cnt, True)
+        polygon = cv2.approxPolyDP(cnt, epsilon, True)
+        approxPolygon.append(polygon[:, 0, :])
+
+    return (approxPolygon)
 
 
 def mask_contours_to_boxes(binary_mask):
@@ -250,6 +274,140 @@ def split_boxes(roi_coords,
             filename=base_name + "_" + str(i) + ".xml")
 
 
+#randomly split rois and reset parameters
+def split_polys(polygons,
+                no_splits=4,
+                base_name="base",
+                ims_res="20",
+                ims_method="par",
+                roi_name="roi"):
+
+    shuffled_rois = pd.Series(np.arange(0, len(polygons), 1)).sample(frac=1)
+    shuffled_rois = shuffled_rois.tolist()
+    polygons = np.array(polygons)[shuffled_rois].tolist()
+
+    n_polygons = len(polygons)
+    no_per_group = n_polygons / no_splits
+    select_seq = np.arange(0, n_polygons - 1, np.floor(no_per_group))
+
+    select_seq[1]
+    i = 0
+    splits = []
+    for i in range(no_splits):
+
+        if i == 0:
+            splits.append(
+                np.array(polygons)[0:int(select_seq[i + 1])].tolist())
+
+        elif i > 0 and i < no_splits - 1:
+
+            first_idx = int(select_seq[i])
+            last_idx = int(select_seq[i + 1])
+            splits.append(np.array(polygons)[first_idx:last_idx].tolist())
+
+        else:
+
+            first_idx = int(select_seq[i])
+            last_idx = int(n_polygons)
+            splits.append(np.array(polygons)[first_idx:last_idx].tolist())
+
+    for i in range(len(splits)):
+        #parse csv file into flexImaging xml for RECTANGLES!!!! only!!
+        output_flex_polys(
+            splits[i],
+            imsres=ims_res,
+            imsmethod=ims_method,
+            roiname=roi_name + "_split" + str(i) + "_",
+            filename=base_name + "_" + str(i) + ".xml")
+
+
+def sort_pg_list(polygons):
+    #fastest sorting for flexImaging import of polygons
+    min_list = []
+    for i in range(len(polygons)):
+        min_list.append(np.min(polygons[i][:, 0]))
+
+    polygons_sorted = np.array(polygons)[np.argsort(min_list)].tolist()
+
+    ##doesn't work
+    #for i in range(len(polygons_sorted)):
+    #    polygons_sorted[i] = np.sort(polygons_sorted[i],axis=0)
+
+    return polygons_sorted
+
+
+##output xml file with FI compatible ROIs for polygons
+def output_flex_polys(polygons,
+                      imsres="100",
+                      imsmethod="mymethod.par",
+                      roiname="myroi_",
+                      filename="myxml.xml",
+                      idxed=False):
+
+    #sort list from low to high y
+    #this seems to produce less issues in flexImaging
+    polygons = sort_pg_list(polygons)
+
+    ##FI polygons to FlexImaging format:
+    cmap = cm.get_cmap('Spectral', len(polygons))  # PiYG
+    rgbs = []
+    for i in range(cmap.N):
+        rgb = cmap(
+            i)[:3]  # will return rgba, we take only first 3 so we get rgb
+        rgbs.append(matplotlib.colors.rgb2hex(rgb))
+
+    polygon_df = pd.DataFrame(
+        np.arange(1,
+                  len(polygons) + 1, 1), columns=['idx'])
+    polygon_df['namefrag'] = roiname
+    polygon_df['name'] = polygon_df['namefrag'] + polygon_df['idx'].map(str)
+    polygon_df['SpectrumColor'] = rgbs
+
+    areaxmls = []
+
+    for j in range(len(polygons)):
+        if polygons[j].shape[0] > 1:
+            E = lxml.builder.ElementMaker()
+            ROOT = E.Area
+            FIELD1 = E.Raster
+            FIELD2 = E.Method
+            POINTFIELDS = []
+
+            for i in range(len(polygons[j])):
+                POINTFIELDS.append(E.Point)
+
+            imsraster = str(imsres) + ',' + str(imsres)
+
+            if len(polygons[j]) < 3:
+                output_type = 0
+            else:
+                output_type = 3
+            the_doc = ROOT(
+                '',
+                Type=str(output_type),
+                Name=polygon_df['name'][j],
+                Enabled="0",
+                ShowSpectra="0",
+                SpectrumColor=polygon_df['SpectrumColor'][j])
+            the_doc.append(FIELD1(imsraster))
+            the_doc.append(FIELD2(imsmethod))
+            for i in range(len(polygons[j])):
+                the_doc.append(POINTFIELDS[i](
+                    str(polygons[j][i][0]) + ',' + str(polygons[j][i][1])))
+
+            areaxmls.append(
+                lxml.etree.tostring(
+                    the_doc, pretty_print=True, encoding='unicode'))
+        else:
+            pass
+    f = open(filename, 'w')
+    for i in range(len(areaxmls)):
+        f.write(areaxmls[i])  # python will convert \n to os.linesep
+    f.close()
+
+    return
+
+
 def output_flex_rects(boundingRect_df,
                       imsres="100",
                       imsmethod="mymethod.par",
@@ -305,106 +463,72 @@ def output_flex_rects(boundingRect_df,
     f.close()
 
 
-#ims_rois = ROIhandler('/home/nhp/testing_data/slide2_s3_BF_0001.jpg',1,is_mask=True)
-#ims_rois.get_rectangles_ijroi('/home/nhp/testing_data/slide2_s3_rois.zip')
-#ims_rois.draw_rect_mask()
+# def bruker_output_xmls(source_fp,
+#                        target_fp,
+#                        wd,
+#                        ijroi_fp,
+#                        project_name,
+#                        ims_resolution=10,
+#                        ims_method="par",
+#                        roi_name="roi",
+#                        splits="0"):
 #
-#stats = sitk.LabelStatisticsImageFilter()
-#bboxes = []
-#for label in stats.GetLabels():
-#    if label == 0:
-#        pass
-#    else:
-#        bbox = stats.GetBoundingBox(label)
-#        bboxes.append(bbox)
+#     ts = datetime.datetime.fromtimestamp(
+#         time.time()).strftime('%Y%m%d_%H_%M_%S_')
+#     no_splits = int(splits)
 #
-#bboxes = np.array(bboxes)
+#     #register
+#     os.chdir(wd)
 #
+#     #get FI tform
+#     source_image = reg_image_preprocess(source_fp, 1, img_type='AF')
+#     target_image = reg_image_preprocess(target_fp, 1, img_type='AF')
 #
-#stats.Execute(sitk.ConnectedComponent(ims_rois.roi_mask),sitk.ConnectedComponent(ims_rois.roi_mask))
-#while i > 0:
-#    bbox = stats.GetBoundingBox()
-#ims_rois.roi_mask.GetPixelIDTypeAsString()
-#sitk.WriteImage(ims_rois.roi_mask, '/home/nhp/test.mha',True)
-
-
-def bruker_output_xmls(source_fp,
-                       target_fp,
-                       wd,
-                       ijroi_fp,
-                       project_name,
-                       ims_resolution=10,
-                       ims_method="par",
-                       roi_name="roi",
-                       splits="0"):
-
-    ts = datetime.datetime.fromtimestamp(
-        time.time()).strftime('%Y%m%d_%H_%M_%S_')
-    no_splits = int(splits)
-
-    #register
-    os.chdir(wd)
-
-    #get FI tform
-    source_image = reg_image_preprocess(source_fp, 1, img_type='AF')
-    target_image = reg_image_preprocess(target_fp, 1, img_type='AF')
-
-    param = parameter_files()
-
-    tmap_correction = register_elx_(
-        source_image.image,
-        target_image.image,
-        param.correction,
-        moving_mask=None,
-        fixed_mask=None,
-        output_dir=ts + project_name + "_tforms_FI_correction",
-        output_fn=ts + project_name + "_correction.txt",
-        logging=True)
-
-    #rois:
-    rois = ROIhandler(source_fp, 1, is_mask=False)
-    rois.get_rectangles_ijroi(ijroi_fp)
-    rois.draw_rect_mask(return_np=False)
-    rois = transform_mc_image_sitk(
-        rois.roi_mask,
-        tmap_correction,
-        1,
-        from_file=False,
-        is_binary_mask=True)
-    rois = sitk.GetArrayFromImage(rois)
-
-    #get bounding rect. after transformation
-    roi_coords = mask_contours_to_boxes(rois)
-
-    #save csv of data
-    roi_coords.to_csv(ts + project_name + roi_name + ".csv", index=False)
-
-    #parse csv file into flexImaging xml for RECTANGLES!!!! only!!
-    output_flex_rects(
-        roi_coords,
-        imsres=ims_resolution,
-        imsmethod=ims_method,
-        roiname=roi_name + "_",
-        filename=ts + project_name + roi_name + ".xml")
-
-    if no_splits > 1:
-        split_boxes(
-            roi_coords,
-            no_splits=no_splits,
-            base_name=ts + project_name + roi_name,
-            ims_res=ims_resolution,
-            ims_method=ims_method,
-            roi_name=roi_name)
-
-    return
-
-
-##testing:
-#fp_moving = 'D:/testing_data/ROIhandler_testing/171127 mouse liver malaria_BF_set1sec2.jpg'
-#fp_fixed = 'D:/testing_data/ROIhandler_testing/171127 mouse liver malaria_BF_set1sec2_0001.jpg'
-#wd = 'D:/testing_data/ROIhandler_testing'
-#ijroi_fp = 'D:/testing_data/ROIhandler_testing/lesion_rois.zip'
-#project_name = 'FI_rois_malaria_testing'
-#ims_resolution = 20
-#ims_method = "parameter_file"
-#roi_name= "roi"
+#     param = parameter_files()
+#
+#     tmap_correction = register_elx_(
+#         source_image.image,
+#         target_image.image,
+#         param.correction,
+#         moving_mask=None,
+#         fixed_mask=None,
+#         output_dir=ts + project_name + "_tforms_FI_correction",
+#         output_fn=ts + project_name + "_correction.txt",
+#         logging=True)
+#
+#     #rois:
+#     rois = ROIhandler(source_fp, 1, is_mask=False)
+#     rois.get_rectangles_ijroi(ijroi_fp)
+#     rois.draw_rect_mask(return_np=False)
+#     rois = transform_mc_image_sitk(
+#         rois.box_mask,
+#         tmap_correction,
+#         1,
+#         from_file=False,
+#         is_binary_mask=True)
+#     rois = sitk.GetArrayFromImage(rois)
+#
+#     #get bounding rect. after transformation
+#     roi_coords = mask_contours_to_boxes(rois)
+#
+#     #save csv of data
+#     roi_coords.to_csv(ts + project_name + roi_name + ".csv", index=False)
+#
+#     #parse csv file into flexImaging xml for RECTANGLES!!!! only!!
+#     output_flex_rects(
+#         roi_coords,
+#         imsres=ims_resolution,
+#         imsmethod=ims_method,
+#         roiname=roi_name + "_",
+#         filename=ts + project_name + roi_name + ".xml")
+#
+#     if no_splits > 1:
+#         split_boxes(
+#             roi_coords,
+#             no_splits=no_splits,
+#             base_name=ts + project_name + roi_name,
+#             ims_res=ims_resolution,
+#             ims_method=ims_method,
+#             roi_name=roi_name)
+#
+#     return

@@ -16,12 +16,14 @@ from regToolboxMSRC.find_IMS_overlap import IMS_ablation_overlap
 from regToolboxMSRC.roi_extraction import extract_ROI_coordinates
 from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import ImsPixelMaps
-from regToolboxMSRC.utils.flx_utils import bruker_output_xmls
+from regToolboxMSRC.bruker_hist_directed import bruker_output_xmls
 import SimpleITK as sitk
 import pkg_resources
 import time
 import datetime
 import yaml
+
+#TODO: make this less shitty
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -1201,6 +1203,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             project_name = str(self.ui.HDR_textbox_fn.text())
 
+            selected_roi_type = self.ui.HDR_roi_type.currentText()
+
             print("Starting Registration...")
             print("Project Name: " + project_name)
 
@@ -1210,6 +1214,7 @@ class MainWindow(QtWidgets.QMainWindow):
             print(
                 "Source -> Target using registration model : flexImaging correction"
             )
+
             bruker_output_xmls(
                 self.HDR_source_fp,
                 self.HDR_target_fp,
@@ -1219,7 +1224,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 ims_resolution=ims_resolution,
                 ims_method=ims_method,
                 roi_name=roi_names,
-                splits=nsplit)
+                splits=nsplit,
+                roi_type=selected_roi_type)
 
             QtWidgets.QMessageBox.question(
                 self, 'Registration Finished',

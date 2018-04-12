@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="SingleSecMulti">
      <attribute name="title">
@@ -2113,8 +2113,8 @@ font: 75 8pt &quot;Arial&quot;;</string>
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>30</y>
-        <width>111</width>
+        <y>40</y>
+        <width>131</width>
         <height>23</height>
        </rect>
       </property>
@@ -2125,7 +2125,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="HDR_projectname_overhead">
       <property name="geometry">
        <rect>
-        <x>30</x>
+        <x>50</x>
         <y>210</y>
         <width>81</width>
         <height>16</height>
@@ -2138,8 +2138,8 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="HDR_Imageloading_overhead">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>6</y>
+        <x>10</x>
+        <y>20</y>
         <width>141</width>
         <height>20</height>
        </rect>
@@ -2154,8 +2154,8 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="HDR_textbox_target">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>60</y>
+        <x>140</x>
+        <y>70</y>
         <width>261</width>
         <height>21</height>
        </rect>
@@ -2172,8 +2172,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_textbox_wd">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>160</y>
+        <x>140</x>
+        <y>170</y>
         <width>301</width>
         <height>21</height>
        </rect>
@@ -2190,7 +2190,7 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLineEdit" name="HDR_textbox_fn">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>140</x>
         <y>210</y>
         <width>171</width>
         <height>20</height>
@@ -2213,8 +2213,8 @@ font: 75 8pt &quot;Arial&quot;;</string>
      <widget class="QLabel" name="HDR_textbox_source">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>30</y>
+        <x>140</x>
+        <y>40</y>
         <width>261</width>
         <height>21</height>
        </rect>
@@ -2232,8 +2232,8 @@ color: rgb(255, 255, 255);</string>
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>60</y>
-        <width>111</width>
+        <y>70</y>
+        <width>131</width>
         <height>23</height>
        </rect>
       </property>
@@ -2244,9 +2244,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QPushButton" name="HDR_button_wd">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>160</y>
-        <width>91</width>
+        <x>30</x>
+        <y>170</y>
+        <width>101</width>
         <height>23</height>
        </rect>
       </property>
@@ -2257,8 +2257,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_textbox_rois">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>110</y>
+        <x>140</x>
+        <y>120</y>
         <width>261</width>
         <height>21</height>
        </rect>
@@ -2275,9 +2275,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QPushButton" name="HDR_button_rois">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>110</y>
-        <width>91</width>
+        <x>30</x>
+        <y>120</y>
+        <width>101</width>
         <height>23</height>
        </rect>
       </property>
@@ -2288,9 +2288,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_reso_label">
       <property name="geometry">
        <rect>
-        <x>490</x>
-        <y>51</y>
-        <width>81</width>
+        <x>510</x>
+        <y>81</y>
+        <width>101</width>
         <height>16</height>
        </rect>
       </property>
@@ -2301,8 +2301,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="HDR_ims_reso">
       <property name="geometry">
        <rect>
-        <x>570</x>
-        <y>50</y>
+        <x>610</x>
+        <y>80</y>
         <width>41</width>
         <height>21</height>
        </rect>
@@ -2314,9 +2314,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_type_label">
       <property name="geometry">
        <rect>
-        <x>460</x>
-        <y>81</y>
-        <width>111</width>
+        <x>480</x>
+        <y>111</y>
+        <width>131</width>
         <height>20</height>
        </rect>
       </property>
@@ -2327,8 +2327,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="HDR_par_fp">
       <property name="geometry">
        <rect>
-        <x>570</x>
-        <y>80</y>
+        <x>610</x>
+        <y>110</y>
         <width>261</width>
         <height>21</height>
        </rect>
@@ -2340,8 +2340,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="HDR_roi_names">
       <property name="geometry">
        <rect>
-        <x>570</x>
-        <y>110</y>
+        <x>610</x>
+        <y>140</y>
         <width>261</width>
         <height>21</height>
        </rect>
@@ -2353,9 +2353,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_roi_names_label">
       <property name="geometry">
        <rect>
-        <x>500</x>
-        <y>111</y>
-        <width>61</width>
+        <x>530</x>
+        <y>141</y>
+        <width>71</width>
         <height>20</height>
        </rect>
       </property>
@@ -2366,7 +2366,7 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_FIparam_overhead">
       <property name="geometry">
        <rect>
-        <x>480</x>
+        <x>520</x>
         <y>25</y>
         <width>201</width>
         <height>21</height>
@@ -2382,9 +2382,9 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_roi_names_label_2">
       <property name="geometry">
        <rect>
-        <x>480</x>
-        <y>141</y>
-        <width>81</width>
+        <x>500</x>
+        <y>171</y>
+        <width>101</width>
         <height>20</height>
        </rect>
       </property>
@@ -2395,8 +2395,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLineEdit" name="HDR_no_splits">
       <property name="geometry">
        <rect>
-        <x>570</x>
-        <y>140</y>
+        <x>610</x>
+        <y>170</y>
         <width>31</width>
         <height>21</height>
        </rect>
@@ -2408,8 +2408,8 @@ color: rgb(255, 255, 255);</string>
      <widget class="QLabel" name="HDR_roi_names_label_3">
       <property name="geometry">
        <rect>
-        <x>610</x>
-        <y>140</y>
+        <x>650</x>
+        <y>170</y>
         <width>161</width>
         <height>20</height>
        </rect>
@@ -2420,6 +2420,42 @@ color: rgb(255, 255, 255);</string>
       <property name="text">
        <string>Leave at 1 for no subsetting</string>
       </property>
+     </widget>
+     <widget class="QLabel" name="HDR_reso_label_2">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>50</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ROI type</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="HDR_roi_type">
+      <property name="geometry">
+       <rect>
+        <x>610</x>
+        <y>50</y>
+        <width>101</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>rectangle</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>polygon</string>
+       </property>
+      </item>
      </widget>
     </widget>
     <widget class="QWidget" name="SerialOverlap">
