@@ -39,20 +39,133 @@ class RegImage(object):
         self.im_format = im_format
         self.spacing = float(img_res)
 
-        image = sitk.ReadImage(self.filepath)
-        if im_format == 'np':
-            self.image = sitk.GetArrayFromImage(image)
+        try:
+            image = sitk.ReadImage(self.filepath)
+            self.image_xy_dim = image.GetSize()[0:2]
+        except:
+            print('Error: image type not recognized')
+            return
 
+        self.image = self.set_img_type(image, self.im_format)
+
+    def set_img_type(self, image, im_format):
+        """Short summary.
+
+        Parameters
+        ----------
+        image : numpy array or SimpleITK.Image()
+            Loaded image for registration
+        im_format : str
+            'sitk' or 'np' for SimpleITK or Numpy as type.
+
+        Returns
+        -------
+        self.image or self.mask
+            image or mask for registration in desired format in memory
+
+        """
+        if im_format == 'np':
+            image = sitk.GetArrayFromImage(image)
+            return image
         if im_format == 'sitk':
-            self.image = image
-            if len(self.image.GetSpacing()) == 3:
-                self.image.SetSpacing((self.spacing, self.spacing, float(1)))
+            if len(image.GetSpacing()) == 3:
+                image.SetSpacing((self.spacing, self.spacing, float(1)))
             else:
-                self.image.SetSpacing((self.spacing, self.spacing))
+                image.SetSpacing((self.spacing, self.spacing))
+            return image
+
+    def load_mask(self, filepath, im_format):
+        """
+        Loads binary mask for registration.
+        Parameters
+        ----------
+        filepath : str
+            filepath to 8-bit mask with one ROI
+        im_format : str
+            'sitk' or 'np' for SimpleITK or Numpy as type.
+
+        Returns
+        -------
+        self.mask
+            mask for registration in desired format in memory
+
+        """
+        self.mask_filepath = filepath
+        self.mask_im_format = im_format
+
+        try:
+            image = sitk.ReadImage(self.mask_filepath)
+            self.mask_xy_dim = image.GetSize()[0:2]
+            self.mask = self.set_img_type(image, self.mask_im_format)
+        except:
+            print('Error: image type not recognized')
+
+    def get_mask_bounding_box(self):
+        """Calculates bounding box of the mask and returns a python dictionary
+        with the minimum x and y point as well as box width and height for
+        later slicing.
+        Returns
+        -------
+        dict
+            returns mask bounding box as dict
+
+        """
+        try:
+            self.mask
+            if self.mask_xy_dim == self.image_xy_dim:
+                x, y, w, h = self.calculate_bounding_box()
+                self.mask_bounding_box = {}
+                self.mask_bounding_box.update({
+                    'min_x': x,
+                    'min_y': y,
+                    'bb_width': w,
+                    'bb_height': h,
+                })
+            else:
+                print('Error: Mask and image dimensions do not match')
+        except:
+            print('Error: no mask has been loaded')
+
+    def calculate_bounding_box(self):
+        '''
+            Uses sitk to get bounding box, assumes image is an uint8 mask with only 1 polygonal label.
+            Returns top-left x,y pixel coordinates and the width and height of bounding box.
+        '''
+        #in case the image is np array
+        if isinstance(self.mask, sitk.Image()) == False:
+            mask = sitk.GetImageFromArray(self.mask)
+        else:
+            mask = self.mask
+        cc = sitk.ConnectedComponent(mask)
+        lab_stats = sitk.LabelStatisticsImageFilter()
+        lab_stats.Execute(cc, cc)
+        bb = lab_stats.GetBoundingBox(1)
+        x, y, w, h = bb[0], bb[2], bb[1] - bb[0], bb[3] - bb[2]
+        print('bounding box:', x, y, w, h)
+        return x, y, w, h
+
+    def crop_to_bounding_box(self):
+        try:
+            self.mask_bounding_box
+            self.image = self.image[self.mask_bounding_box[
+                'min_x']:self.mask_bounding_box[
+                    'bb_width'], self.mask_bounding_box['min_y']:
+                                    self.mask_bounding_box['bb_height']]
+            self.mask = self.mask[self.mask_bounding_box[
+                'min_x']:self.mask_bounding_box[
+                    'bb_width'], self.mask_bounding_box['min_y']:
+                                  self.mask_bounding_box['bb_height']]
+
+            self.image.SetOrigin((0, 0))
+            self.mask.SetOrigin((0, 0))
+            self.type = self.type + '-Bounding Box Cropped'
+
+        except:
+            print('Error: no bounding box extents found')
 
     def to_greyscale(self):
         '''
-        Converts RGB image to greyscale using cv2. (sitk images will eventually be converted using ITK...)
+        Converts RGB registration image to greyscale using cv2. (sitk images will eventually be converted using ITK...)
         '''
         if self.im_format == 'sitk':
             if self.image.GetNumberOfComponentsPerPixel() == 3:
@@ -127,7 +240,8 @@ class RegImage(object):
 
     def invert_intensity(self):
         '''
-        This will invert the intensity scale of a greyscale image. This is useful with histological images where the background is 'whitish.'
+        This will invert the intensity scale of a greyscale registration image.
+        This is useful with histological images where the background is 'whitish.'
 
         '''
         if self.im_format == 'sitk':
@@ -209,33 +323,32 @@ def get_mask_bb(mask_fp):
     return x, y, w, h
 
 
-def register_elx_(moving,
-                  fixed,
+def register_elx_(source,
+                  target,
                   param,
-                  moving_mask=None,
-                  fixed_mask=None,
+                  source_mask=None,
+                  target_mask=None,
                   output_dir="transformations",
                   output_fn="myreg.txt",
                   return_image=False,
-                  logging=True,
-                  bounding_box=False):
+                  logging=True):
     '''
     Utility function to register 2D images and save their results in a user named subfolder and transformation text file.
 
-    :param moving: SimpleITK image set as moving image. Can optionally pass sitk.ReadImage(moving_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
+    :param source: SimpleITK image set as source image. Can optionally pass sitk.ReadImage(source_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
 
-    :param fixed: SimpleITK image set as fixed image. Can optionally pass sitk.ReadImage(fixed_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
+    :param target: SimpleITK image set as target image. Can optionally pass sitk.ReadImage(target_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
 
     :param param: Elastix paramter file loaded into SWIG. Can optionally pass sitk.ReadParameterFile(parameter_fp) to load text parameter from file. See http://elastix.isi.uu.nl/ for example parameter files
 
-    :param moving_mask: Filepath to moving image (a binary mask) or the moving image itself. Function will type check the image.
+    :param source_mask: Filepath to source image (a binary mask) or the source image itself. Function will type check the image.
 
-    :param fixed_mask:
-        Filepath to fixed mask image (a binary mask) or the SimpleITK fixed mask image itself.
+    :param target_mask:
+        Filepath to target mask image (a binary mask) or the SimpleITK target mask image itself.
         Function will type check the image.
 
-    :param moving_mask:
-        Filepath to fixed mask image (a binary mask) or the SimpleITK fixed mask image itself.
+    :param source_mask:
+        Filepath to target mask image (a binary mask) or the SimpleITK target mask image itself.
         Function will type check the image.
 
     :param output_dir:
@@ -250,7 +363,7 @@ def register_elx_(moving,
     :param bounding_box:
         Currently experimental that addresses masking in SimpleElastix by cropping images to the bounding box of their mask
 
-    :return: Transformation file and optionally the registered moving image
+    :return: Transformation file and optionally the registered source image
     :return type: SimpleITK parameter map and SimpleITK image
 
     '''
@@ -263,96 +376,46 @@ def register_elx_(moving,
         selx.LogToConsoleOn()
 
     param_selx = param
+
     #turns off returning the image in the paramter file
     if return_image == False:
         param_selx['WriteResultImage'] = ('false', )
 
     selx.SetParameterMap(param_selx)
 
-    fixed_shape = fixed.GetSize()
-    moving_shape = moving.GetSize()
-
-    bbox_dict = {}
     #set masks if used
-    if moving_mask == None:
+    if source_mask == None:
         pass
     else:
-        if isinstance(moving_mask, type(sitk.Image())) == True:
-            mask_moving = moving_mask
-            mask_moving.SetSpacing(moving.GetSpacing())
-            selx.SetMovingMask(mask_moving)
+        if isinstance(source_mask, sitk.Image()) == True:
+            selx.SetMovingMask(source_mask)
 
         else:
-            mask_moving = sitk.ReadImage(moving_mask)
-            mask_moving.SetSpacing(moving.GetSpacing())
+            source_mask = sitk.ReadImage(source_mask)
+            source_mask.SetSpacing(source.GetSpacing())
+            selx.SetsourceMask(source_mask)
 
-            if bounding_box == True:
-                moving_x, moving_y, moving_w, moving_h = get_mask_bb(
-                    moving_mask)
-
-                mask_moving = mask_moving[moving_x:moving_x + moving_w,
-                                          moving_y:moving_y + moving_h]
-
-                moving = moving[moving_x:moving_x + moving_w, moving_y:
-                                moving_y + moving_h]
-
-                moving.SetOrigin((0, 0))
-                mask_moving.SetOrigin((0, 0))
-
-                bbox_dict.update({
-                    'moving_x': moving_x,
-                    'moving_y': moving_y,
-                    'moving_w': moving_w,
-                    'moving_h': moving_h,
-                    'moving_shape': moving_shape
-                })
-
-            selx.SetMovingMask(mask_moving)
-
-    if fixed_mask == None:
+    if target_mask == None:
         pass
     else:
-        if isinstance(fixed_mask, type(sitk.Image())) == True:
-            mask_fixed = fixed_mask
-            mask_moving.SetSpacing(moving.GetSpacing())
-            selx.SetMovingMask(mask_moving)
+        if isinstance(target_mask, sitk.Image()) == True:
+            selx.SetTargetMask(target_mask)
 
         else:
-            mask_fixed = sitk.ReadImage(fixed_mask)
-            mask_fixed.SetSpacing(fixed.GetSpacing())
-            if bounding_box == True:
-                fixed_x, fixed_y, fixed_w, fixed_h = get_mask_bb(fixed_mask)
-                print(fixed_x, fixed_y, fixed_w, fixed_h)
-
-                mask_fixed = mask_fixed[fixed_x:fixed_x + fixed_w, fixed_y:
-                                        fixed_y + fixed_h]
-                fixed = fixed[fixed_x:fixed_x + fixed_w, fixed_y:
-                              fixed_y + fixed_h]
-                fixed.SetOrigin((0, 0))
-                mask_fixed.SetOrigin((0, 0))
-
-                bbox_dict.update({
-                    'fixed_x': fixed_x,
-                    'fixed_y': fixed_y,
-                    'fixed_w': fixed_w,
-                    'fixed_h': fixed_h,
-                    'fixed_shape': fixed_shape
-                })
-
-            selx.SetMovingMask(mask_fixed)
-
-        #mask_fixed.SetSpacing(fixed.GetSpacing())
-        #selx.SetFixedMask(mask_fixed)
+            target_mask = sitk.ReadImage(target_mask)
+            target_mask.SetSpacing(target.GetSpacing())
+            selx.SetsourceMask(target_mask)
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     selx.SetOutputDirectory(os.path.join(os.getcwd(), output_dir))
 
-    selx.SetFixedImage(fixed)
-    selx.SetMovingImage(moving)
+    selx.SetMovingImage(source)
+    selx.SetFixedImage(target)
 
     selx.LogToFileOn()
+
     #execute registration:
     if return_image == True:
         transformed_image = selx.Execute()
@@ -365,33 +428,141 @@ def register_elx_(moving,
 
     transformationMap = selx.GetTransformParameterMap()
 
-    ##really elegant function return below:
-    if len(bbox_dict) > 0 and return_image == True:
-        return transformationMap, transformed_image, bbox_dict
-
-    elif len(bbox_dict) == 0 and return_image == True:
+    if return_image == True:
         return transformationMap, transformed_image
-
-    elif len(bbox_dict) > 0 and return_image == False:
-        return transformationMap, bbox_dict
 
     else:
         return transformationMap
 
 
-def paste_to_original_dim(transformed_image, fixed_x, fixed_y, final_size_2D):
+def register_elx_n(source,
+                   target,
+                   param,
+                   output_dir="transformations",
+                   output_fn="myreg.txt",
+                   return_image=False,
+                   logging=True):
+    '''
+    Utility function to register 2D images and save their results in a user named subfolder and transformation text file.
+
+    :param source: SimpleITK image set as source image. Can optionally pass sitk.ReadImage(source_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
+
+    :param target: SimpleITK image set as target image. Can optionally pass sitk.ReadImage(target_img_fp) to load image from file. Warning that usually this function is accompanied using the 'RegImage' class where image spacing is set
+
+    :param param: Elastix paramter file loaded into SWIG. Can optionally pass sitk.ReadParameterFile(parameter_fp) to load text parameter from file. See http://elastix.isi.uu.nl/ for example parameter files
+
+    :param source_mask: Filepath to source image (a binary mask) or the source image itself. Function will type check the image.
+
+    :param target_mask:
+        Filepath to target mask image (a binary mask) or the SimpleITK target mask image itself.
+        Function will type check the image.
+
+    :param source_mask:
+        Filepath to target mask image (a binary mask) or the SimpleITK target mask image itself.
+        Function will type check the image.
+
+    :param output_dir:
+        String used to create a folder in the current working directory to store registration outputs (iteration information and transformation parameter file)
+
+    :param output_fn:
+        String used to name transformation file in the output_fn directory
+
+    :param logging:
+        Boolean, whether SimpleElastix should log to console. Note that this logging doesn't work in IPython notebooks
+
+    :param bounding_box:
+        Currently experimental that addresses masking in SimpleElastix by cropping images to the bounding box of their mask
+
+    :return: Transformation file and optionally the registered source image
+    :return type: SimpleITK parameter map and SimpleITK image
+
+    '''
+    try:
+        selx = sitk.SimpleElastix()
+    except:
+        selx = sitk.ElastixImageFilter()
+
+    if isinstance(source, RegImage) == False:
+        print('Error: source is not of an object of type RegImage')
+        return
+
+    if isinstance(target, RegImage) == False:
+        print('Error: source is not of an object of type RegImage')
+        return
+
+    if logging == True:
+        selx.LogToConsoleOn()
+
+    param_selx = param
+
+    #turns off returning the image in the paramter file
+    if return_image == False:
+        param_selx['WriteResultImage'] = ('false', )
+
+    selx.SetParameterMap(param_selx)
+
+    #set masks if used
+    try:
+        source.mask
+        if isinstance(source.mask, sitk.Image()) == True:
+            selx.SetMovingMask(source.mask)
+        else:
+            print('Error: Source mask could not be set')
+    except:
+        print('No moving mask found')
+
+    try:
+        if isinstance(target.mask, sitk.Image()) == True:
+            selx.SetFixedMask(target.mask)
+
+        else:
+            print('Error: Target mask could not be set')
+    except:
+        print('No fixed mask found')
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    selx.SetOutputDirectory(os.path.join(os.getcwd(), output_dir))
+
+    selx.SetFixedImage(target.image)
+    selx.SetMovingImage(source.image)
+
+    selx.LogToFileOn()
+
+    #execute registration:
+    if return_image == True:
+        transformed_image = selx.Execute()
+    else:
+        selx.Execute()
+
+    os.rename(
+        os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'),
+        os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
+
+    transformationMap = selx.GetTransformParameterMap()
+
+    if return_image == True:
+        return transformationMap, transformed_image
+
+    else:
+        return transformationMap
+
+
+def paste_to_original_dim(transformed_image, target_x, target_y,
+                          final_size_2D):
     '''
         Experimental support function to used 'crops' of singular masks rather than using Elastix masking (which seems not to work...)
         Returns image in coordinate original coordinate space
 
-        :param fixed_x:
+        :param target_x:
             top-left x coordinate of mask's bounding box
 
-        :param fixed_y:
+        :param target_y:
             top-left y coordinate of mask's bounding box
 
         :param final_size_2D:
-            m x n dimensions of fixed image from registration
+            m x n dimensions of target image from registration
 
 
     '''
@@ -405,7 +576,7 @@ def paste_to_original_dim(transformed_image, fixed_x, fixed_y, final_size_2D):
             placeholder,
             transformed_image,
             transformed_image.GetSize(),
-            destinationIndex=[fixed_x, fixed_y])
+            destinationIndex=[target_x, target_y])
 
     elif transformed_image.GetDepth() > 1:
         print('multichannel_image')
@@ -421,7 +592,7 @@ def paste_to_original_dim(transformed_image, fixed_x, fixed_y, final_size_2D):
             placeholder,
             transformed_image,
             transformed_image.GetSize(),
-            destinationIndex=[fixed_x, fixed_y, 0])
+            destinationIndex=[target_x, target_y, 0])
 
     elif transformed_image.GetDepth(
     ) < 1 and transformed_image.GetNumberOfComponentsPerPixel() == 1:
@@ -433,7 +604,7 @@ def paste_to_original_dim(transformed_image, fixed_x, fixed_y, final_size_2D):
             placeholder,
             transformed_image,
             transformed_image.GetSize(),
-            destinationIndex=[fixed_x, fixed_y])
+            destinationIndex=[target_x, target_y])
 
     return transformed_image
 
@@ -455,18 +626,33 @@ def check_im_size_fiji(image):
     return impixels > 10**9
 
 
-def transform_image(moving, transformationMap):
+def transform_image(source, transformationMap):
+    """Transforms an image using SimpleTransformix.
+
+    Parameters
+    ----------
+    source : SimpleITK.Image
+        SimpleITK image that will be registered.
+    transformationMap : SimpleITK parameterMap
+        SimpleITK parameterMap that defines transformation
+
+    Returns
+    -------
+    SimpleITK image
+        Transformed image
+
+    """
 
     try:
         transformix = sitk.SimpleTransformix()
     except:
         transformix = sitk.TransformixImageFilter()
 
-    transformix.SetMovingImage(moving)
+    transformix.SetMovingImage(source)
     transformix.SetTransformParameterMap(transformationMap)
     transformix.LogToConsoleOn()
-    moving_tformed = transformix.Execute()
-    return (moving_tformed)
+    source_tformed = transformix.Execute()
+    return (source_tformed)
 
 
 def transform_mc_image_sitk(image_fp,
@@ -538,6 +724,28 @@ def transform_mc_image_sitk(image_fp,
 
 
 def transform_from_gui(source_fp, transforms, TFM_wd, src_reso, project_name):
+    """Deprecated function for gui transform. This will read a python list of
+    transforms and apply them in chain.
+
+    Parameters
+    ----------
+    source_fp : str
+        Filepath string to image to be transformed
+    transforms : list
+        Python list of transform filepaths
+    TFM_wd : str
+        String of directory where image will be saved
+    src_reso : float
+        pixel resolution of image
+    project_name : str
+        Name that will be appended onto saved image.
+
+    Returns
+    -------
+    None
+        Only writes image
+
+    """
     for i in range(len(transforms)):
         if i == 0:
             source = transform_mc_image_sitk(
@@ -558,6 +766,9 @@ def transform_from_gui(source_fp, transforms, TFM_wd, src_reso, project_name):
 
 
 def write_param_xml(xml_params, opdir, ts, project_name):
+    """Deprecated xml parameter save function. changed to .yaml
+
+    """
     stringed = ET.tostring(xml_params)
     reparsed = xml.dom.minidom.parseString(stringed)
 
@@ -568,6 +779,8 @@ def write_param_xml(xml_params, opdir, ts, project_name):
 
 
 def prepare_output(wd, project_name, xml_params):
+    """Deprecaed xml parameter function.
+    """
     #prepare folder name
 
     ts = datetime.datetime.fromtimestamp(
@@ -582,7 +795,7 @@ def prepare_output(wd, project_name, xml_params):
 
 
 def RegImage_load(image, source_img_res):
-    if isinstance(image, type(sitk.Image())) == True:
+    if isinstance(image, sitk.Image()) == True:
         image.SetSpacing((source_img_res, source_img_res))
         return image
     elif os.path.exists(image):
@@ -594,7 +807,21 @@ def RegImage_load(image, source_img_res):
 
 
 def parameterFile_load(parameterFile):
-    if isinstance(parameterFile, type(sitk.ParameterMap())) == True:
+    """Convenience function to load parameter file. Detects whether parameterFile
+    is already loaded into memory or needs to be loaded from file.
+
+    Parameters
+    ----------
+    parameterFile : str or SimpleITK parameterMap
+        filepath to a SimpleITK parameterMap or a SimpleITK parameterMap loaded into memory
+
+    Returns
+    -------
+    SimpleITK parameterMap
+
+
+    """
+    if isinstance(parameterFile, sitk.ParameterMap()) == True:
         return parameterFile
     elif os.path.exists(parameterFile):
         try:
@@ -606,7 +833,11 @@ def parameterFile_load(parameterFile):
         print('parameter input is not valid')
 
 
-def reg_image_preprocess(image_fp, img_res, img_type='RGB_l'):
+def reg_image_preprocess(image_fp,
+                         img_res,
+                         img_type='RGB_l',
+                         mask_fp=None,
+                         bounding_box=False):
     if img_type in ['RGB_l', 'AF']:
         if img_type == "RGB_l":
             out_image = RegImage(image_fp, 'sitk', img_res)
@@ -619,6 +850,13 @@ def reg_image_preprocess(image_fp, img_res, img_type='RGB_l'):
                 out_image.compress_AF_channels('max')
             if out_image.image.GetNumberOfComponentsPerPixel() == 3:
                 out_image.to_greyscale()
+
+    if source_mask_fp != None:
+        out_image.load_mask(mask_fp, 'sitk')
+
+        if bounding_box == True:
+            out_image.get_mask_bounding_box()
+            out_image.crop_to_bounding_box()
     else:
         print(img_type + ' is an invalid image type (valid: RGB_l & AF)')
 
@@ -626,6 +864,20 @@ def reg_image_preprocess(image_fp, img_res, img_type='RGB_l'):
 
 
 def parameter_load(reg_model):
+    """Load a default regtoolboxMSRC registration parameter or one from file.
+
+    Parameters
+    ----------
+    reg_model : str
+        a string of the default parameterMap name. If reg_model is not in the default list
+        it should be a filepath to a SimpleITK parameterMap
+
+    Returns
+    -------
+    SimpleITK parameterMap
+
+
+    """
     if isinstance(reg_model, str):
         if reg_model in [
                 'affine', 'affine_test', 'fi_correction', 'nl', 'rigid',

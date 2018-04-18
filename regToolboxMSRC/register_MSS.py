@@ -118,8 +118,8 @@ def register_MSS(source_fp,
         source.image,
         target.image,
         reg_param1,
-        moving_mask=source_mask_fp,
-        fixed_mask=target_mask_fp,
+        source_mask=source_mask_fp,
+        target_mask=target_mask_fp,
         output_dir=pass_in + "_tforms_src_tgt_init",
         output_fn=pass_in + "_init_src_tgt_init.txt",
         return_image=True,
@@ -153,8 +153,8 @@ def register_MSS(source_fp,
         init_img,
         target.image,
         reg_param_nl,
-        moving_mask=source_mask_fp,
-        fixed_mask=target_mask_fp,
+        source_mask=source_mask_fp,
+        target_mask=target_mask_fp,
         output_dir=pass_in + "_tforms_src_tgt_nl",
         output_fn=pass_in + "init_src_tgt_nl.txt",
         return_image=False,
@@ -168,7 +168,7 @@ def register_MSS(source_fp,
         tformed_im, src_tgt_tform_nl, source_res, from_file=False)
 
     #    if bounding_box == True and os.path.exists(target2_mask_fp):
-    #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
+    #        tformed_im = paste_to_original_dim(tformed_im, target_x, target_y, final_size_2D)
 
     if check_im_size_fiji(tformed_im) == True:
         sitk.WriteImage(tformed_im,

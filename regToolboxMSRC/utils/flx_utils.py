@@ -16,6 +16,19 @@ from matplotlib import cm
 
 
 class ROIhandler(object):
+    """Container class for handling ROIs loaded from ImageJ or a binary mask image.
+
+    Parameters
+    ----------
+    roi_image_fp : str
+        filepath to image that defines extents of box or a mask.
+    img_res : float
+        Pixel resolution of loaded image.
+    is_mask : bool
+        Whether the image filepath is a mask or only defines image extents
+
+    """
+
     def __init__(self, roi_image_fp, img_res, is_mask=False):
         self.type = 'ROI Container'
         self.roi_image_fp = roi_image_fp
@@ -33,6 +46,19 @@ class ROIhandler(object):
     ##this function parses the ImageJ ROI file into all corners and far corners for rectangle ROIs
     #it only keeps the corners necessary for cv2 drawing
     def get_rectangles_ijroi(self, ij_rois_fp):
+        """Short summary.
+
+        Parameters
+        ----------
+        ij_rois_fp : str
+            Filepath to an ImageJ ROI file
+
+        Returns
+        -------
+        list
+            Python lists of rectangle corners and all 4 corner coords.
+
+        """
 
         rois = ijroi.read_roi_zip(ij_rois_fp)
         allcoords = [poly[1] for poly in rois]
@@ -42,6 +68,20 @@ class ROIhandler(object):
 
     ###grabs polygonal ijrois
     def get_polygons_ijroi(self, ij_rois_fp):
+        """Short summary.
+
+        Parameters
+        ----------
+        ij_rois_fp : str
+            Filepath to an ImageJ ROI file
+
+
+        Returns
+        -------
+        list
+            Python list of polygon verteces as numpy arrays
+
+        """
         fn, fe = os.path.splitext(ij_rois_fp)
         print(fe)
         if fe == '.zip':
@@ -53,6 +93,14 @@ class ROIhandler(object):
 
     ##this function draws the mask needed for general FI rois
     def draw_rect_mask(self):
+        """Draws uint8 binary mask image based on rectangle coords.
+
+        Returns
+        -------
+        SimpleITK image
+            Binary mask of loaded rect coords.
+
+        """
         if len(self.roi_corners) == 0:
             raise ValueError('Rois have not been generated')
 
@@ -76,6 +124,19 @@ class ROIhandler(object):
 
     ##this function slices all the rois into sitk images
     def get_rect_rois_as_images(self, image_fp):
+        """Slice images based on loaded rectangles.
+
+        Parameters
+        ----------
+        image_fp : str
+            Filepath to image to be sliced by rectangles
+
+        Returns
+        -------
+        list
+            Python list of SimpleITK images sliced by rectangles
+
+        """
         if len(self.roi_corners) == 0:
             raise ValueError('Rois have not been generated')
 
