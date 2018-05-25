@@ -21,7 +21,7 @@ class RegImage(object):
 
     '''
 
-    def __init__(self, filepath, im_format, img_res=1):
+    def __init__(self, filepath, im_format, img_res=1, load_image=True):
         '''
         Container class for image meta data and processing between ITK and cv2
             :param filepath: filepath to the image
@@ -39,14 +39,23 @@ class RegImage(object):
         self.im_format = im_format
         self.spacing = float(img_res)
 
-        try:
-            image = sitk.ReadImage(self.filepath)
-            self.image_xy_dim = image.GetSize()[0:2]
-        except:
-            print('Error: image type not recognized')
-            return
+        if load_image == True:
+            try:
+                image = sitk.ReadImage(self.filepath)
+                self.image_xy_dim = image.GetSize()[0:2]
+            except:
+                print('Error: image type not recognized')
+                return
 
-        self.image = self.set_img_type(image, self.im_format)
+            self.image = self.set_img_type(image, self.im_format)
+
+    def get_image_from_memory(self, image):
+        if isinstance(image, sitk.Image):
+            self.image = image
+            self.image_xy_dim = self.image.GetSize()[0:2]
+            self.image = self.set_img_type(self.image, 'sitk')
+        else:
+            print('use SimpleITK images to load from memory')
 
     def set_img_type(self, image, im_format):
         """Short summary.
@@ -123,8 +132,29 @@ class RegImage(object):
                 })
             else:
                 print('Error: Mask and image dimensions do not match')
-        except:
+        except AttributeError:
             print('Error: no mask has been loaded')
+
+    def crop_to_bounding_box(self):
+        try:
+            self.mask_bounding_box
+            self.image = self.image[
+                self.mask_bounding_box['min_x']:self.mask_bounding_box['min_x']
+                + self.mask_bounding_box['bb_width'], self.mask_bounding_box[
+                    'min_y']:self.mask_bounding_box['min_y'] +
+                self.mask_bounding_box['bb_height']]
+            self.mask = self.mask[
+                self.mask_bounding_box['min_x']:self.mask_bounding_box['min_x']
+                + self.mask_bounding_box['bb_width'], self.mask_bounding_box[
+                    'min_y']:self.mask_bounding_box['min_y'] +
+                self.mask_bounding_box['bb_height']]
+
+            self.image.SetOrigin((0, 0))
+            self.mask.SetOrigin((0, 0))
+            self.type = self.type + '-Bounding Box Cropped'
+
+        except AttributeError:
+            print('Error: no bounding box extents found')
 
     def calculate_bounding_box(self):
         '''
@@ -132,7 +162,7 @@ class RegImage(object):
             Returns top-left x,y pixel coordinates and the width and height of bounding box.
         '''
         #in case the image is np array
-        if isinstance(self.mask, sitk.Image()) == False:
+        if isinstance(self.mask, sitk.Image) == False:
             mask = sitk.GetImageFromArray(self.mask)
         else:
             mask = self.mask
@@ -143,25 +173,6 @@ class RegImage(object):
         x, y, w, h = bb[0], bb[2], bb[1] - bb[0], bb[3] - bb[2]
         print('bounding box:', x, y, w, h)
         return x, y, w, h
-
-    def crop_to_bounding_box(self):
-        try:
-            self.mask_bounding_box
-            self.image = self.image[self.mask_bounding_box[
-                'min_x']:self.mask_bounding_box[
-                    'bb_width'], self.mask_bounding_box['min_y']:
-                                    self.mask_bounding_box['bb_height']]
-            self.mask = self.mask[self.mask_bounding_box[
-                'min_x']:self.mask_bounding_box[
-                    'bb_width'], self.mask_bounding_box['min_y']:
-                                  self.mask_bounding_box['bb_height']]
-
-            self.image.SetOrigin((0, 0))
-            self.mask.SetOrigin((0, 0))
-            self.type = self.type + '-Bounding Box Cropped'
-
-        except:
-            print('Error: no bounding box extents found')
 
     def to_greyscale(self):
         '''
@@ -387,7 +398,7 @@ def register_elx_(source,
     if source_mask == None:
         pass
     else:
-        if isinstance(source_mask, sitk.Image()) == True:
+        if isinstance(source_mask, sitk.Image) == True:
             selx.SetMovingMask(source_mask)
 
         else:
@@ -398,7 +409,7 @@ def register_elx_(source,
     if target_mask == None:
         pass
     else:
-        if isinstance(target_mask, sitk.Image()) == True:
+        if isinstance(target_mask, sitk.Image) == True:
             selx.SetTargetMask(target_mask)
 
         else:
@@ -441,6 +452,7 @@ def register_elx_n(source,
                    output_dir="transformations",
                    output_fn="myreg.txt",
                    return_image=False,
+                   intermediate_transform=False,
                    logging=True):
     '''
     Utility function to register 2D images and save their results in a user named subfolder and transformation text file.
@@ -482,11 +494,14 @@ def register_elx_n(source,
     except:
         selx = sitk.ElastixImageFilter()
 
-    if isinstance(source, RegImage) == False:
+    #gotta fix this element
+    if str(type(source)) != str(
+            '<class \'regToolboxMSRC.utils.reg_utils.RegImage\'>'):
         print('Error: source is not of an object of type RegImage')
         return
 
-    if isinstance(target, RegImage) == False:
+    if str(type(target)) != str(
+            '<class \'regToolboxMSRC.utils.reg_utils.RegImage\'>'):
         print('Error: source is not of an object of type RegImage')
         return
 
@@ -504,20 +519,22 @@ def register_elx_n(source,
     #set masks if used
     try:
         source.mask
-        if isinstance(source.mask, sitk.Image()) == True:
+        if isinstance(source.mask, sitk.Image) == True:
             selx.SetMovingMask(source.mask)
+
         else:
             print('Error: Source mask could not be set')
-    except:
+    except AttributeError:
         print('No moving mask found')
 
     try:
-        if isinstance(target.mask, sitk.Image()) == True:
+        target.mask
+        if isinstance(target.mask, sitk.Image) == True:
             selx.SetFixedMask(target.mask)
 
         else:
             print('Error: Target mask could not be set')
-    except:
+    except AttributeError:
         print('No fixed mask found')
 
     if not os.path.exists(output_dir):
@@ -536,11 +553,47 @@ def register_elx_n(source,
     else:
         selx.Execute()
 
-    os.rename(
-        os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'),
-        os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
+    #os.rename(
+    #    os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'),
+    #    os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
 
-    transformationMap = selx.GetTransformParameterMap()
+    transformationMap = selx.GetTransformParameterMap()[0]
+    transformationMap['OriginalSizeMoving'] = [
+        str(source.image_xy_dim[0]),
+        str(source.image_xy_dim[1])
+    ]
+    transformationMap['OriginalSizeFixed'] = [
+        str(target.image_xy_dim[0]),
+        str(target.image_xy_dim[1])
+    ]
+
+    transformationMap['BoundingBoxMoving'] = ['0', '0', '0', '0']
+    transformationMap['BoundingBoxFixed'] = ['0', '0', '0', '0']
+
+    if hasattr(source, 'mask_bounding_box'):
+        transformationMap['BoundingBoxMoving'] = [
+            str(source.mask_bounding_box['min_x']),
+            str(source.mask_bounding_box['min_y']),
+            str(source.mask_bounding_box['bb_width']),
+            str(source.mask_bounding_box['bb_height'])
+        ]
+
+    if hasattr(target, 'mask_bounding_box'):
+        transformationMap['BoundingBoxFixed'] = [
+            str(target.mask_bounding_box['min_x']),
+            str(target.mask_bounding_box['min_y']),
+            str(target.mask_bounding_box['bb_width']),
+            str(target.mask_bounding_box['bb_height'])
+        ]
+
+    if intermediate_transform == True:
+        transformationMap['IntermediateTransform'] = ['true']
+    else:
+        transformationMap['IntermediateTransform'] = ['false']
+
+    sitk.WriteParameterFile(transformationMap,
+                            os.path.join(os.getcwd(), output_dir,
+                                         output_fn + '.txt'))
 
     if return_image == True:
         return transformationMap, transformed_image
@@ -626,7 +679,7 @@ def check_im_size_fiji(image):
     return impixels > 10**9
 
 
-def transform_image(source, transformationMap):
+def transform_image(source, transformationMap, override_tform=False):
     """Transforms an image using SimpleTransformix.
 
     Parameters
@@ -648,10 +701,44 @@ def transform_image(source, transformationMap):
     except:
         transformix = sitk.TransformixImageFilter()
 
+    overriden_flag = False
+
+    if 'BoundingBoxMoving' in transformationMap:
+        bb = list(transformationMap['BoundingBoxMoving'])
+        bb = [int(float(x)) for x in bb]
+        if sum(bb) > 0:
+            source = source[bb[0]:bb[0] + bb[2], bb[1]:bb[1] + bb[3]]
+
     transformix.SetMovingImage(source)
     transformix.SetTransformParameterMap(transformationMap)
     transformix.LogToConsoleOn()
     source_tformed = transformix.Execute()
+
+    if source_tformed.GetSize(
+    ) != transformationMap['OriginalSizeFixed'] and override_tform == True:
+
+        bb = list(transformationMap['BoundingBoxFixed'])
+        bb = [int(float(x)) for x in bb]
+
+        img_size = list(transformationMap['OriginalSizeFixed'])
+        img_size = [int(float(x)) for x in img_size]
+
+        source_tformed = paste_to_original_dim(source_tformed, bb[0], bb[1],
+                                               (img_size[0], img_size[1]))
+        overriden_flag = True
+
+    if source_tformed.GetSize(
+    ) != transformationMap['OriginalSizeFixed'] and transformationMap['IntermediateTransform'] == (
+            'false', ) and overriden_flag == False:
+
+        bb = list(transformationMap['BoundingBoxFixed'])
+        bb = [int(float(x)) for x in bb]
+        img_size = list(transformationMap['OriginalSizeFixed'])
+        img_size = [int(float(x)) for x in img_size]
+
+        source_tformed = paste_to_original_dim(source_tformed, bb[0], bb[1],
+                                               (img_size[0], img_size[1]))
+
     return (source_tformed)
 
 
@@ -659,7 +746,8 @@ def transform_mc_image_sitk(image_fp,
                             transformationMap,
                             img_res,
                             from_file=True,
-                            is_binary_mask=False):
+                            is_binary_mask=False,
+                            override_tform=False):
 
     if from_file == True:
         print('image loaded from file')
@@ -676,7 +764,8 @@ def transform_mc_image_sitk(image_fp,
     # grayscale image transformation
     if image.GetNumberOfComponentsPerPixel() == 1 and image.GetDepth() == 0:
         print('transforming grayscale image')
-        tformed_image = transform_image(image, transformationMap)
+        tformed_image = transform_image(
+            image, transformationMap, override_tform=override_tform)
         print('casting grayscale image')
         if is_binary_mask == True:
             tformed_image = sitk.Cast(tformed_image, sitk.sitkUInt8)
@@ -693,7 +782,8 @@ def transform_mc_image_sitk(image_fp,
             print('getting image ' + str(chan) + ' of RGB')
             channel = sitk.VectorIndexSelectionCast(image, chan)
             print('transforming image ' + str(chan) + ' of RGB')
-            channel = transform_image(channel, transformationMap)
+            channel = transform_image(
+                channel, transformationMap, override_tform=override_tform)
             print('rescaling image ' + str(chan) + ' of RGB')
             channel = sitk.RescaleIntensity(channel, 0, 255)
             tformed_image.append(channel)
@@ -709,7 +799,8 @@ def transform_mc_image_sitk(image_fp,
             print('getting image ' + str(chan) + ' of multi-layer image')
             channel = image[:, :, chan]
             print('transforming image ' + str(chan) + ' of multi-layer image')
-            channel = transform_image(channel, transformationMap)
+            channel = transform_image(
+                channel, transformationMap, override_tform=override_tform)
             print('rescaling image ' + str(chan) + ' of multi-layer image')
             channel = sitk.RescaleIntensity(channel, 0, 255)
             tformed_image.append(channel)
@@ -794,13 +885,13 @@ def prepare_output(wd, project_name, xml_params):
     write_param_xml(xml_params, opdir, ts, project_name)
 
 
-def RegImage_load(image, source_img_res):
-    if isinstance(image, sitk.Image()) == True:
+def RegImage_load(image, source_img_res, load_image=True):
+    if isinstance(image, sitk.Image) == True:
         image.SetSpacing((source_img_res, source_img_res))
         return image
     elif os.path.exists(image):
         try:
-            image = RegImage(image, 'sitk', source_img_res)
+            image = RegImage(image, 'sitk', source_img_res, load_image)
             return image
         except:
             print('invalid image file')
@@ -821,7 +912,7 @@ def parameterFile_load(parameterFile):
 
 
     """
-    if isinstance(parameterFile, sitk.ParameterMap()) == True:
+    if isinstance(parameterFile, sitk.ParameterMap) == True:
         return parameterFile
     elif os.path.exists(parameterFile):
         try:
@@ -838,25 +929,39 @@ def reg_image_preprocess(image_fp,
                          img_type='RGB_l',
                          mask_fp=None,
                          bounding_box=False):
-    if img_type in ['RGB_l', 'AF']:
+
+    if img_type in ['RGB_l', 'AF', 'in_memory', 'none']:
         if img_type == "RGB_l":
             out_image = RegImage(image_fp, 'sitk', img_res)
             out_image.to_greyscale()
             out_image.invert_intensity()
-
-        else:
+        elif img_type == 'AF':
             out_image = RegImage(image_fp, 'sitk', img_res)
             if out_image.image.GetDepth() > 1:
                 out_image.compress_AF_channels('max')
             if out_image.image.GetNumberOfComponentsPerPixel() == 3:
                 out_image.to_greyscale()
+        elif img_type == 'in_memory':
+            out_image = RegImage(
+                'from_file', 'sitk', img_res, load_image=False)
+            out_image.get_image_from_memory(image_fp)
+        else:
+            out_image = RegImage(image_fp, 'sitk', img_res)
 
-    if source_mask_fp != None:
-        out_image.load_mask(mask_fp, 'sitk')
+        if mask_fp != None:
+            if isinstance(mask_fp, sitk.Image) == True:
+                if out_image.image.GetSize() != mask_fp.GetSize():
+                    print(
+                        'Warning: reg image and mask do not have the same dimension'
+                    )
+                out_image.mask = mask_fp
 
-        if bounding_box == True:
-            out_image.get_mask_bounding_box()
-            out_image.crop_to_bounding_box()
+            else:
+                out_image.load_mask(mask_fp, 'sitk')
+
+            if bounding_box == True:
+                out_image.get_mask_bounding_box()
+                out_image.crop_to_bounding_box()
     else:
         print(img_type + ' is an invalid image type (valid: RGB_l & AF)')
 

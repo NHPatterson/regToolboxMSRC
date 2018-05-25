@@ -163,13 +163,12 @@ def register_MSM(source_fp,
 
     if intermediate_output == True:
 
-        source = RegImage(source_fp, source_res, 'sitk')
-        if source_mask_fp != None:
-            source.load_mask(source_mask_fp, 'sitk')
-
-            if bounding_box_source == True:
-                source.get_mask_bounding_box()
-                source.crop_to_bounding_box()
+        source = reg_image_preprocess(
+            source_fp,
+            source_res,
+            img_type=source_img_type,
+            mask_fp=source_mask_fp,
+            bounding_box=bounding_box_source)
 
         tformed_im = transform_mc_image_sitk(
             source.image, src_tgt1_tform, source_res, from_file=False)
@@ -182,7 +181,7 @@ def register_MSM(source_fp,
                 target1.mask_bounding_box['min_y'], target1.image_xy_dim)
 
         sitk.WriteImage(tformed_im,
-                        os.path.join(os.getcwd(), opdir,
+                        project_name + "_tgt1_tgt2_init.tif"),True)
 
     target1 = reg_image_preprocess(
         target1_fp,
