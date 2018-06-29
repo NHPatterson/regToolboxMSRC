@@ -11,7 +11,7 @@ from regToolboxMSRC.utils.reg_utils import register_elx_, transform_mc_image_sit
 import SimpleITK as sitk
 
 
-def register_MSS(source_fp,
+def register_SSS(source_fp,
                  source_res,
                  target_fp,
                  target_res,
@@ -27,8 +27,8 @@ def register_MSS(source_fp,
                  bounding_box_target=False,
                  pass_in_project_name=False,
                  pass_in=None):
-    """This function performs linear then non-linear registration between 2
-    images from serial tissue sections.
+    """This function performs linear registration between 2 images from
+    the same tissue section.
 
     Parameters
     ----------
@@ -86,6 +86,7 @@ def register_MSS(source_fp,
         The function writes the transformation files and images in the specified
         working directory.
     """
+
     #set up output information
     if pass_in_project_name == False:
         ts = datetime.datetime.fromtimestamp(
@@ -124,75 +125,30 @@ def register_MSS(source_fp,
     print(project_name + ": target 1 image loaded")
 
     #registration initial
-    src_tgt_tform_init, init_img = register_elx_n(
+    src_tgt_tform_init = register_elx_n(
         source,
         target,
         reg_param1,
         output_dir=pass_in + "_tforms_src_tgt_init",
         output_fn=pass_in + "_init_src_tgt_init.txt",
-        return_image=True,
+        return_image=False,
         intermediate_transform=True)
 
     #transform intermediate result and save output
     os.chdir(wd)
 
-    if intermediate_output == True:
-        tformed_im = transform_mc_image_sitk(
-            source_fp, src_tgt_tform_init, source_res, override_tform=False)
-
-        sitk.WriteImage(tformed_im,
-                        os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt_init.tif"), True)
-
-    #load non-linear registration parameter
-    reg_param_nl = parameter_load('nl')
-
-    ##register using nl transformation
-    if source_mask_fp != None:
-        source_mask_fp = transform_mc_image_sitk(
-            source_mask_fp,
-            src_tgt_tform_init,
-            source_res,
-            from_file=True,
-            is_binary_mask=True,
-            override_tform=False)
-
-    source = reg_image_preprocess(
-        init_img,
-        target_res,
-        img_type='in_memory',
-        mask_fp=source_mask_fp,
-        bounding_box=False)
-
-    src_tgt_tform_nl = register_elx_n(
-        source,
-        target,
-        reg_param_nl,
-        output_dir=pass_in + "_tforms_src_tgt_nl",
-        output_fn=pass_in + "init_src_tgt_nl.txt",
-        return_image=False,
-        logging=True,
-        intermediate_transform=False)
-
-    ##source to tgt2
+    ##source to target
     tformed_im = transform_mc_image_sitk(
         source_fp, src_tgt_tform_init, source_res, override_tform=False)
-
-    tformed_im = transform_mc_image_sitk(
-        tformed_im,
-        src_tgt_tform_nl,
-        source_res,
-        from_file=False,
-        override_tform=False)
 
     if check_im_size_fiji(tformed_im) == True:
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt_nl.mha"), True)
+                                     project_name + "_src_tgt.mha"), True)
     else:
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt_nl.tif"), True)
+                                     project_name + "_src_tgt.tif"), True)
 
     return
 
@@ -203,18 +159,18 @@ if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         # use safe_load instead load
         dataMap = yaml.safe_load(f)
-    print(dataMap)
-    register_MSS(
+
+    register_SSS(
         dataMap['source_fp'],
-        dataMap['source_res'],  #source image
+        dataMap['source_res'],
         dataMap['target_fp'],
-        dataMap['target_res'],  #target image
+        dataMap['target_res'],
         dataMap['source_mask_fp'],
-        dataMap['target_mask_fp'],  #masks
-        dataMap['wd'],  #output directory
+        dataMap['target1_mask_fp'],
+        dataMap['wd'],
         dataMap['source_img_type'],
-        dataMap['target_img_type'],  #image type info 'RGB_l' or 'AF'
-        dataMap['reg_model'],  #initial transformation model
+        dataMap['target_img_type'],
+        dataMap['reg_model1'],
         dataMap['project_name'],
         intermediate_output=False,
         bounding_box_source=dataMap['bounding_box_source'],

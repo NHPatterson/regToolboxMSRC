@@ -29,7 +29,6 @@ def register_MSM(source_fp,
                  reg_model1,
                  reg_model2,
                  project_name,
-                 return_image=False,
                  intermediate_output=False,
                  bounding_box_source=False,
                  bounding_box_target1=False,
@@ -290,4 +289,6 @@ if __name__ == '__main__':
         dataMap['reg_model2'],
         dataMap['project_name'],
         intermediate_output=dataMap['intermediate_output'],
-        bounding_box=dataMap['bounding_box'])
+        bounding_box_source= = dataMap['bounding_box_source'],
+        bounding_box_target1 = dataMap['bounding_box_target1'],
+        bounding_box_target2 = dataMap['bounding_box_target2'])
