@@ -739,6 +739,9 @@ def transform_image(source, transformationMap, override_tform=False):
         source_tformed = paste_to_original_dim(source_tformed, bb[0], bb[1],
                                                (img_size[0], img_size[1]))
 
+    img_spacing = [float(x) for x in transformationMap['Spacing']]
+    source_tformed.SetSpacing(img_spacing)
+
     return (source_tformed)
 
 

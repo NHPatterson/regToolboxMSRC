@@ -32,9 +32,8 @@ def register_MSM(source_fp,
                  return_image=False,
                  intermediate_output=False,
                  bounding_box_source=False,
-                 bounding_box_target1_src_tgt=False,
-                 bounding_box_target1_tgt1_tgt2=False,
-                 bounding_box_target2_tgt1_tgt2=False,
+                 bounding_box_target1=False,
+                 bounding_box_target2=False,
                  pass_in_project_name=False,
                  pass_in=None):
     """This function performs registration between 2 images from the same
@@ -142,17 +141,15 @@ def register_MSM(source_fp,
         target1_res,
         img_type=target1_img_type,
         mask_fp=target1_mask_fp,
-        bounding_box=bounding_box_target1_src_tgt)
+        bounding_box=bounding_box_target1)
 
     print(project_name + ": target 1 image loaded")
 
     #registration
-    src_tgt1_tform = register_elx_(
-        source.image,
-        target1.image,
+    src_tgt1_tform = register_elx_n(
+        source,
+        target1,
         reg_param1,
-        source_mask=source.mask,
-        target_mask=target1.mask,
         output_dir=pass_in + "_tforms_src_tgt1",
         output_fn=pass_in + "_init_src_tgt1.txt",
         return_image=False,
@@ -162,50 +159,27 @@ def register_MSM(source_fp,
     os.chdir(wd)
 
     if intermediate_output == True:
-
-        source = reg_image_preprocess(
-            source_fp,
-            source_res,
-            img_type=source_img_type,
-            mask_fp=source_mask_fp,
-            bounding_box=bounding_box_source)
-
         tformed_im = transform_mc_image_sitk(
-            source.image, src_tgt1_tform, source_res, from_file=False)
-
-        del source
-
-        if target1_mask_fp != None and bounding_box_target1 == True:
-            paste_to_original_dim(
-                transformed_image, target1.mask_bounding_box['min_x'],
-                target1.mask_bounding_box['min_y'], target1.image_xy_dim)
+            source_fp, src_tgt1_tform, source_res, override_tform=False)
 
         sitk.WriteImage(tformed_im,
-                        project_name + "_tgt1_tgt2_init.tif"),True)
-
-    target1 = reg_image_preprocess(
-        target1_fp,
-        target1_res,
-        img_type=target1_img_type,
-        mask_fp=target1_mask_fp,
-        bounding_box=bounding_box_target1_tgt1_tgt2)
+                        os.path.join(os.getcwd(), opdir,
+                                     project_name + "_src_tgt1.tif"), True)
 
     target2 = reg_image_preprocess(
         target2_fp,
         target2_res,
         img_type=target2_img_type,
         mask_fp=target2_mask_fp,
-        bounding_box=bounding_box_target2_tgt1_tgt2)
+        bounding_box=bounding_box_target2)
 
     print(project_name + ": target 2 image loaded")
 
     ##get target 2 image metaData in case of bounding box masking:
-    tgt1_tgt2_tform_init, init_img = register_elx_(
-        target1.image,
-        target2.image,
+    tgt1_tgt2_tform_init, init_img = register_elx_n(
+        target1,
+        target2,
         reg_param2,
-        source_mask=target1_mask_fp,
-        target_mask=target2_mask_fp,
         output_dir=pass_in + "_tforms_tgt1_tgt2_init",
         output_fn=pass_in + "tgt1_tgt2_init.txt",
         return_image=True,
@@ -213,15 +187,18 @@ def register_MSM(source_fp,
 
     #transform tgt1_tgt2 init result and save output
 
+    os.chdir(wd)
+
     if intermediate_output == True:
-        tformed_im = transform_mc_image_sitk(target1_fp, tgt1_tgt2_tform_init,
-                                             target1_res)
+        tformed_im = transform_mc_image_sitk(
+            target1_fp,
+            tgt1_tgt2_tform_init,
+            target1_res,
+            override_tform=False)
+
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_tgt1_tgt2_init.tif"),
-                        True)
-
-    del target1
+                                     project_name + "_src_tgt1.tif"), True)
 
     reg_param_nl = parameter_load('nl')
 
@@ -229,26 +206,28 @@ def register_MSM(source_fp,
     if target1_mask_fp != None:
         target1_mask_fp = transform_mc_image_sitk(
             target1_mask_fp,
-            tgt1_tgt2_tform_init,
+            src_tgt_tform_init,
             target1_res,
             from_file=True,
-            is_binary_mask=True)
+            is_binary_mask=True,
+            override_tform=False)
 
-    tgt1_tgt2_tform_nl, init_img = register_elx_(
+    target1 = reg_image_preprocess(
         init_img,
-        target2.image,
-        reg_param_nl,
-        moving_mask=target1_mask_fp,
-        fixed_mask=target2_mask_fp,
-        output_dir=pass_in + "_tforms_tgt1_tgt2_nl",
-        output_fn=pass_in + "tgt1_tgt2_nl.txt",
-        return_image=True,
-        logging=True,
+        target_res,
+        img_type='in_memory',
+        mask_fp=target1_mask_fp,
         bounding_box=False)
 
-    #    if bounding_box == True and os.path.exists(target2_mask_fp):
-    #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
-    #
+    tgt1_tgt2_tform_nl = register_elx_(
+        target1,
+        target2,
+        reg_param_nl,
+        output_dir=pass_in + "_tforms_tgt1_tgt2_nl",
+        output_fn=pass_in + "tgt1_tgt2_nl.txt",
+        return_image=False,
+        logging=True)
+
     ##tgt1 to tgt2
     tformed_im = transform_mc_image_sitk(target1_fp, tgt1_tgt2_tform_init,
                                          target1_res)
