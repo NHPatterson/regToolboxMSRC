@@ -148,14 +148,15 @@ def register_MSS(source_fp,
     reg_param_nl = parameter_load('nl')
 
     ##register using nl transformation
-    if source_mask_fp != None:
-        source_mask_fp = transform_mc_image_sitk(
-            source_mask_fp,
-            src_tgt_tform_init,
-            source_res,
-            from_file=True,
-            is_binary_mask=True,
-            override_tform=False)
+    # #add masking continuation(TODO)
+    # if source_mask_fp != None:
+    #     source_mask_fp = transform_mc_image_sitk(
+    #         source_mask_fp,
+    #         src_tgt_tform_init,
+    #         source_res,
+    #         from_file=True,
+    #         is_binary_mask=True,
+    #         override_tform=False)
 
     source = reg_image_preprocess(
         init_img,
@@ -203,7 +204,7 @@ if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         # use safe_load instead load
         dataMap = yaml.safe_load(f)
-    print(dataMap)
+
     register_MSS(
         dataMap['source_fp'],
         dataMap['source_res'],  #source image
@@ -216,6 +217,6 @@ if __name__ == '__main__':
         dataMap['target_img_type'],  #image type info 'RGB_l' or 'AF'
         dataMap['reg_model'],  #initial transformation model
         dataMap['project_name'],
-        intermediate_output=False,
+        intermediate_output=dataMap['intermediate_output'],
         bounding_box_source=dataMap['bounding_box_source'],
         bounding_box_target=dataMap['bounding_box_target'])

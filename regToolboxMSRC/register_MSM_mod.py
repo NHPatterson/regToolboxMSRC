@@ -144,11 +144,6 @@ def register_MSM(source_fp,
 
     print(project_name + ": target 1 image loaded")
 
-    reg_param1['MaximumNumberOfIterations'] = ['100']  #testing
-    reg_param2['MaximumNumberOfIterations'] = ['100']  #testing
-    reg_param1['AutomaticTransformInitialization'] = ['false']  #testing
-    reg_param2['AutomaticTransformInitialization'] = ['false']  #testing
-
     #registration
     src_tgt1_tform = register_elx_n(
         source,
@@ -187,7 +182,8 @@ def register_MSM(source_fp,
         output_dir=pass_in + "_tforms_tgt1_tgt2_init",
         output_fn=pass_in + "tgt1_tgt2_init.txt",
         return_image=True,
-        logging=True)
+        logging=True,
+        intermediate_transform=True)
 
     #transform tgt1_tgt2 init result and save output
 
@@ -202,27 +198,31 @@ def register_MSM(source_fp,
 
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt1.tif"), True)
+                                     project_name + "_tgt1_tgt2_init.tif"),
+                        True)
 
     reg_param_nl = parameter_load('nl')
 
-    reg_param_nl['MaximumNumberOfIterations'] = ['200']  #testing
-
     ##register using nl transformation
-    if target1_mask_fp != None:
-        target1_mask_fp = transform_mc_image_sitk(
-            target1_mask_fp,
-            tgt1_tgt2_tform_init,
-            target1_res,
-            from_file=True,
-            is_binary_mask=True,
-            override_tform=False)
+    #add masking..(TODO)
+    # if target1_mask_fp != None:
+    #     target1_mask_fp = transform_mc_image_sitk(
+    #         target1_mask_fp,
+    #         tgt1_tgt2_tform_init,
+    #         target1_res,
+    #         from_file=True,
+    #         is_binary_mask=True,
+    #         override_tform=False)
+    #
+    #     target1_mask_fp.SetSpacing((float(target2_res), float(target2_res)))
+    #
+    # target1_bb = target1.mask_bounding_box
 
     target1 = reg_image_preprocess(
         init_img,
-        target1_res,
+        target2_res,
         img_type='in_memory',
-        mask_fp=target1_mask_fp,
+        mask_fp=None,
         bounding_box=False)
 
     tgt1_tgt2_tform_nl = register_elx_n(
