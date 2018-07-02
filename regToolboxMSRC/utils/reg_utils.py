@@ -542,8 +542,8 @@ def register_elx_n(source,
 
     selx.SetOutputDirectory(os.path.join(os.getcwd(), output_dir))
 
-    selx.SetFixedImage(target.image)
     selx.SetMovingImage(source.image)
+    selx.SetFixedImage(target.image)
 
     selx.LogToFileOn()
 

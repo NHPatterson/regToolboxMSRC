@@ -212,7 +212,7 @@ def register_MSM(source_fp,
     if target1_mask_fp != None:
         target1_mask_fp = transform_mc_image_sitk(
             target1_mask_fp,
-            src_tgt_tform_init,
+            tgt1_tgt2_tform_init,
             target1_res,
             from_file=True,
             is_binary_mask=True,
@@ -220,12 +220,12 @@ def register_MSM(source_fp,
 
     target1 = reg_image_preprocess(
         init_img,
-        target_res,
+        target1_res,
         img_type='in_memory',
         mask_fp=target1_mask_fp,
         bounding_box=False)
 
-    tgt1_tgt2_tform_nl = register_elx_(
+    tgt1_tgt2_tform_nl = register_elx_n(
         target1,
         target2,
         reg_param_nl,
