@@ -7,7 +7,7 @@
 import os
 import time
 import datetime
-from regToolboxMSRC.utils.reg_utils import register_elx_, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess, parameter_load, RegImage
+from regToolboxMSRC.utils.reg_utils import register_elx_n, check_im_size_fiji, reg_image_preprocess, parameter_load, transform_mc_image_sitk
 import SimpleITK as sitk
 
 ##MSM registration: this performs registration of two images from the same section to a serial section.
@@ -144,6 +144,11 @@ def register_MSM(source_fp,
 
     print(project_name + ": target 1 image loaded")
 
+    reg_param1['MaximumNumberOfIterations'] = ['100']  #testing
+    reg_param2['MaximumNumberOfIterations'] = ['100']  #testing
+    reg_param1['AutomaticTransformInitialization'] = ['false']  #testing
+    reg_param2['AutomaticTransformInitialization'] = ['false']  #testing
+
     #registration
     src_tgt1_tform = register_elx_n(
         source,
@@ -200,6 +205,8 @@ def register_MSM(source_fp,
                                      project_name + "_src_tgt1.tif"), True)
 
     reg_param_nl = parameter_load('nl')
+
+    reg_param_nl['MaximumNumberOfIterations'] = ['200']  #testing
 
     ##register using nl transformation
     if target1_mask_fp != None:
@@ -289,6 +296,6 @@ if __name__ == '__main__':
         dataMap['reg_model2'],
         dataMap['project_name'],
         intermediate_output=dataMap['intermediate_output'],
-        bounding_box_source= = dataMap['bounding_box_source'],
-        bounding_box_target1 = dataMap['bounding_box_target1'],
-        bounding_box_target2 = dataMap['bounding_box_target2'])
+        bounding_box_source=dataMap['bounding_box_source'],
+        bounding_box_target1=dataMap['bounding_box_target1'],
+        bounding_box_target2=dataMap['bounding_box_target2'])

@@ -132,7 +132,7 @@ def register_SSS(source_fp,
         output_dir=pass_in + "_tforms_src_tgt_init",
         output_fn=pass_in + "_init_src_tgt_init.txt",
         return_image=False,
-        intermediate_transform=True)
+        intermediate_transform=False)
 
     #transform intermediate result and save output
     os.chdir(wd)

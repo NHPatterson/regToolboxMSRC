@@ -7,7 +7,7 @@
 import os
 import time
 import datetime
-from regToolboxMSRC.utils.reg_utils import register_elx_, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess, parameter_load
+from regToolboxMSRC.utils.reg_utils import register_elx_n, transform_mc_image_sitk, check_im_size_fiji, reg_image_preprocess, parameter_load
 import SimpleITK as sitk
 
 

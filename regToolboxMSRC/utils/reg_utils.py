@@ -435,7 +435,7 @@ def register_elx_(source,
 
     os.rename(
         os.path.join(os.getcwd(), output_dir, 'TransformParameters.0.txt'),
-        os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
+        os.path.join(os.getcwd(), output_dir, output_fn))
 
     transformationMap = selx.GetTransformParameterMap()
 
@@ -704,10 +704,11 @@ def transform_image(source, transformationMap, override_tform=False):
     overriden_flag = False
 
     if 'BoundingBoxMoving' in transformationMap:
-        bb = list(transformationMap['BoundingBoxMoving'])
-        bb = [int(float(x)) for x in bb]
-        if sum(bb) > 0:
-            source = source[bb[0]:bb[0] + bb[2], bb[1]:bb[1] + bb[3]]
+        bb_source = list(transformationMap['BoundingBoxMoving'])
+        bb_source = [int(float(x)) for x in bb_source]
+        if sum(bb_source) > 0:
+            source = source[bb_source[0]:bb_source[0] + bb_source[2],
+                            bb_source[1]:bb_source[1] + bb_source[3]]
 
     transformix.SetMovingImage(source)
     transformix.SetTransformParameterMap(transformationMap)
@@ -731,12 +732,13 @@ def transform_image(source, transformationMap, override_tform=False):
     ) != transformationMap['OriginalSizeFixed'] and transformationMap['IntermediateTransform'] == (
             'false', ) and overriden_flag == False:
 
-        bb = list(transformationMap['BoundingBoxFixed'])
-        bb = [int(float(x)) for x in bb]
+        bb_target = list(transformationMap['BoundingBoxFixed'])
+        bb_target = [int(float(x)) for x in bb_target]
         img_size = list(transformationMap['OriginalSizeFixed'])
         img_size = [int(float(x)) for x in img_size]
 
-        source_tformed = paste_to_original_dim(source_tformed, bb[0], bb[1],
+        source_tformed = paste_to_original_dim(source_tformed, bb_target[0],
+                                               bb_target[1],
                                                (img_size[0], img_size[1]))
 
     img_spacing = [float(x) for x in transformationMap['Spacing']]
