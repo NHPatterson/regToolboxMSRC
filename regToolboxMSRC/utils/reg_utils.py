@@ -558,6 +558,7 @@ def register_elx_n(source,
     #    os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
 
     transformationMap = selx.GetTransformParameterMap()[0]
+	
     transformationMap['OriginalSizeMoving'] = [
         str(source.image_xy_dim[0]),
         str(source.image_xy_dim[1])
