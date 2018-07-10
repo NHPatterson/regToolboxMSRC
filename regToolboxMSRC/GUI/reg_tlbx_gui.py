@@ -546,7 +546,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSS_src_mask_fp = None
         else:
-            self.ui.SSM_textbox_source_mask.setText(
+            self.ui.SSS_textbox_source_mask.setText(
                 os.path.basename(file_name))
             self.SSS_src_mask_fp = file_name
 
@@ -555,7 +555,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSS_tgt1_mask_fp = None
         else:
-            self.ui.SSM_textbox_target1_mask.setText(
+            self.ui.SSS_textbox_target_mask.setText(
                 os.path.basename(file_name))
             self.SSS_tgt_mask_fp = file_name
 
@@ -700,7 +700,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSS_src_mask_fp = None
         else:
-            self.ui.SSM_textbox_source_mask.setText(
+            self.ui.MSS_textbox_source_mask.setText(
                 os.path.basename(file_name))
             self.MSS_src_mask_fp = file_name
 
@@ -709,7 +709,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSS_tgt1_mask_fp = None
         else:
-            self.ui.SSM_textbox_target1_mask.setText(
+            self.ui.MSS_textbox_target_mask.setText(
                 os.path.basename(file_name))
             self.MSS_tgt_mask_fp = file_name
 
