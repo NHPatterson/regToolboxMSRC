@@ -7,7 +7,7 @@
 import os
 import time
 import datetime
-from regToolboxMSRC.utils.reg_utils import register_elx_, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess, parameter_load
+from regToolboxMSRC.utils.reg_utils import register_elx_n, transform_mc_image_sitk, check_im_size_fiji, reg_image_preprocess, parameter_load
 import SimpleITK as sitk
 
 
@@ -22,9 +22,9 @@ def register_MSS(source_fp,
                  target_img_type,
                  reg_model,
                  project_name,
-                 return_image=False,
                  intermediate_output=False,
-                 bounding_box=False,
+                 bounding_box_source=True,
+                 bounding_box_target=True,
                  pass_in_project_name=False,
                  pass_in=None):
     """This function performs linear then non-linear registration between 2
@@ -106,69 +106,85 @@ def register_MSS(source_fp,
 
     #load images for registration:
     source = reg_image_preprocess(
-        source_fp, source_res, img_type=source_img_type)
+        source_fp,
+        source_res,
+        img_type=source_img_type,
+        mask_fp=source_mask_fp,
+        bounding_box=bounding_box_source)
+
     print(project_name + ": source image loaded")
 
     target = reg_image_preprocess(
-        target_fp, target_res, img_type=target_img_type)
-    print(project_name + ": target image loaded")
+        target_fp,
+        target_res,
+        img_type=target_img_type,
+        mask_fp=target_mask_fp,
+        bounding_box=bounding_box_target)
 
-    #registration
-    src_tgt_tform_init, init_img = register_elx_(
-        source.image,
-        target.image,
+    print(project_name + ": target 1 image loaded")
+
+    #registration initial
+    src_tgt_tform_init, init_img = register_elx_n(
+        source,
+        target,
         reg_param1,
-        source_mask=source_mask_fp,
-        target_mask=target_mask_fp,
         output_dir=pass_in + "_tforms_src_tgt_init",
         output_fn=pass_in + "_init_src_tgt_init.txt",
         return_image=True,
-        logging=True,
-        bounding_box=False)
+        intermediate_transform=True)
 
-    #transform result and save output
+    #transform intermediate result and save output
     os.chdir(wd)
 
     if intermediate_output == True:
-        tformed_im = transform_mc_image_sitk(source_fp, src_tgt_tform_init,
-                                             source_res)
+        tformed_im = transform_mc_image_sitk(
+            source_fp, src_tgt_tform_init, source_res, override_tform=False)
+
         sitk.WriteImage(tformed_im,
                         os.path.join(os.getcwd(), opdir,
                                      project_name + "_src_tgt_init.tif"), True)
 
-    del source
-
+    #load non-linear registration parameter
     reg_param_nl = parameter_load('nl')
 
     ##register using nl transformation
-    if source_mask_fp != None:
-        source_mask_fp = transform_mc_image_sitk(
-            source_mask_fp,
-            src_tgt_tform_init,
-            source_res,
-            from_file=True,
-            is_binary_mask=True)
+    # #add masking continuation(TODO)
+    # if source_mask_fp != None:
+    #     source_mask_fp = transform_mc_image_sitk(
+    #         source_mask_fp,
+    #         src_tgt_tform_init,
+    #         source_res,
+    #         from_file=True,
+    #         is_binary_mask=True,
+    #         override_tform=False)
 
-    src_tgt_tform_nl = register_elx_(
+    source = reg_image_preprocess(
         init_img,
-        target.image,
+        target_res,
+        img_type='in_memory',
+        mask_fp=source_mask_fp,
+        bounding_box=False)
+
+    src_tgt_tform_nl = register_elx_n(
+        source,
+        target,
         reg_param_nl,
-        source_mask=source_mask_fp,
-        target_mask=target_mask_fp,
         output_dir=pass_in + "_tforms_src_tgt_nl",
         output_fn=pass_in + "init_src_tgt_nl.txt",
         return_image=False,
         logging=True,
-        bounding_box=False)
+        intermediate_transform=False)
 
     ##source to tgt2
-    tformed_im = transform_mc_image_sitk(source_fp, src_tgt_tform_init,
-                                         source_res)
     tformed_im = transform_mc_image_sitk(
-        tformed_im, src_tgt_tform_nl, source_res, from_file=False)
+        source_fp, src_tgt_tform_init, source_res, override_tform=False)
 
-    #    if bounding_box == True and os.path.exists(target2_mask_fp):
-    #        tformed_im = paste_to_original_dim(tformed_im, target_x, target_y, final_size_2D)
+    tformed_im = transform_mc_image_sitk(
+        tformed_im,
+        src_tgt_tform_nl,
+        source_res,
+        from_file=False,
+        override_tform=False)
 
     if check_im_size_fiji(tformed_im) == True:
         sitk.WriteImage(tformed_im,
@@ -202,4 +218,5 @@ if __name__ == '__main__':
         dataMap['reg_model'],  #initial transformation model
         dataMap['project_name'],
         intermediate_output=dataMap['intermediate_output'],
-        bounding_box=dataMap['bounding_box'])
+        bounding_box_source=dataMap['bounding_box_source'],
+        bounding_box_target=dataMap['bounding_box_target'])

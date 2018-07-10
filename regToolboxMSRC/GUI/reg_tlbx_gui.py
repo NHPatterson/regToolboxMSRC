@@ -337,7 +337,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSM_src_mask_fp = None
         else:
-            #self.ui.SSM_textbox_source.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_source_mask.setText(
+                os.path.basename(file_name))
             self.SSM_src_mask_fp = file_name
 
     def SSM_oc_tgt_mask1(self):
@@ -345,7 +346,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSM_tgt1_mask_fp = None
         else:
-            #self.ui.SSM_textbox_target1.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_target1_mask.setText(
+                os.path.basename(file_name))
             self.SSM_tgt1_mask_fp = file_name
 
     def SSM_oc_tgt_mask2(self):
@@ -353,7 +355,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSM_tgt2_mask_fp = None
         else:
-            #self.ui.SSM_textbox_target2.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_target2_mask.setText(
+                os.path.basename(file_name))
             self.SSM_tgt2_mask_fp = file_name
 
     def SSM_oc_wd(self):
@@ -461,7 +464,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 ui_reg_model2=self.ui.SSM_Reg_model2.currentText(),
                 project_name=project_name,
                 intermediate_output=intermed,
-                bounding_box=self.SSM_bounding_box,
+                bounding_box_source=True,
+                bounding_box_target1=True,
+                bounding_box_target2=True,
                 pass_in=ts + project_name)
 
             with open(
@@ -469,24 +474,6 @@ class MainWindow(QtWidgets.QMainWindow):
                                  'SSM_' + ts + project_name + '_config.yaml'),
                     'w') as outfile:
                 yaml.dump(SSM_params, outfile, default_flow_style=False)
-
-#            self.SSM_source_fp,
-#            source_res,
-#            self.SSM_target1_fp,
-#            target1_res,
-#            self.SSM_target2_fp,
-#            target2_res,
-#            self.SSM_src_mask_fp,
-#            self.SSM_tgt1_mask_fp,
-#            self.SSM_tgt2_mask_fp,
-#            self.SSM_wd,
-#            SSM_source_img_type,
-#            SSM_target_img_type1,
-#            SSM_target_img_type2,
-#            reg_model1,
-#            reg_model2,
-#            project_name,
-#            intermediate_output = intermed
 
             if params == False:
                 print("Starting Registration...")
@@ -526,7 +513,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.SSM_reg_model2,
                     project_name,
                     intermediate_output=intermed,
-                    bounding_box=False,
                     pass_in_project_name=True,
                     pass_in=ts + project_name)
 
@@ -560,7 +546,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSS_src_mask_fp = None
         else:
-            #self.ui.SSM_textbox_source.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_source_mask.setText(
+                os.path.basename(file_name))
             self.SSS_src_mask_fp = file_name
 
     def SSS_oc_tgt_mask(self):
@@ -568,7 +555,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.SSS_tgt1_mask_fp = None
         else:
-            #self.ui.SSM_textbox_target1.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_target1_mask.setText(
+                os.path.basename(file_name))
             self.SSS_tgt_mask_fp = file_name
 
     def SSS_oc_wd(self):
@@ -645,7 +633,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 reg_model1=self.SSS_reg_model1,
                 ui_reg_model1=self.ui.SSS_Reg_model1.currentText(),
                 project_name=project_name,
-                bounding_box=self.SSS_bounding_box,
+                bounding_box_source=True,
+                bounding_box_target=True,
                 pass_in=ts + project_name)
 
             with open(
@@ -711,7 +700,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSS_src_mask_fp = None
         else:
-            #self.ui.SSM_textbox_source.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_source_mask.setText(
+                os.path.basename(file_name))
             self.MSS_src_mask_fp = file_name
 
     def MSS_oc_tgt_mask(self):
@@ -719,7 +709,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSS_tgt1_mask_fp = None
         else:
-            #self.ui.SSM_textbox_target1.setText(os.path.basename(file_name))
+            self.ui.SSM_textbox_target1_mask.setText(
+                os.path.basename(file_name))
             self.MSS_tgt_mask_fp = file_name
 
     def MSS_oc_wd(self):
@@ -807,7 +798,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 reg_model1=self.MSS_reg_model1,
                 ui_reg_model1=self.ui.MSS_Reg_model1.currentText(),
                 project_name=project_name,
-                bounding_box=self.MSS_bounding_box,
+                bounding_box_source=True,
+                bounding_box_target=True,
                 pass_in=ts + project_name)
 
             with open(
@@ -955,7 +947,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSM_src_mask_fp = None
         else:
-            #self.ui.MSM_textbox_source.setText(os.path.basename(file_name))
+            self.ui.MSM_textbox_source_mask.setText(
+                os.path.basename(file_name))
             self.MSM_src_mask_fp = file_name
 
     def MSM_oc_tgt_mask1(self):
@@ -963,7 +956,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSM_tgt1_mask_fp = None
         else:
-            #self.ui.MSM_textbox_target1.setText(os.path.basename(file_name))
+            self.ui.MSM_textbox_target1_mask.setText(
+                os.path.basename(file_name))
             self.MSM_tgt1_mask_fp = file_name
 
     def MSM_oc_tgt_mask2(self):
@@ -971,7 +965,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(file_name) == 0:
             self.MSM_tgt2_mask_fp = None
         else:
-            #self.ui.MSM_textbox_target2.setText(os.path.basename(file_name))
+            self.ui.MSM_textbox_target2_mask.setText(
+                os.path.basename(file_name))
             self.MSM_tgt2_mask_fp = file_name
 
     def MSM_oc_wd(self):
@@ -1078,7 +1073,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 ui_reg_model2=self.ui.MSM_Reg_model2.currentText(),
                 project_name=project_name,
                 intermediate_output=intermed,
-                bounding_box=self.MSM_bounding_box,
+                bounding_box_source=True,
+                bounding_box_target1=True,
+                bounding_box_target2=True,
                 pass_in=ts + project_name)
 
             with open(
@@ -1591,8 +1588,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.MSM_tgt2_reso.setText(param_map['target2_res'])
 
             self.MSM_src_mask_fp = param_map['source_mask_fp']
-            self.MSM_tgt2_mask_fp = param_map['target1_mask_fp']
+            self.MSM_tgt1_mask_fp = param_map['target1_mask_fp']
             self.MSM_tgt2_mask_fp = param_map['target2_mask_fp']
+
+            self.ui.MSM_textbox_source_mask.setText(
+                os.path.basename(param_map['source_mask_fp']))
+
+            self.ui.MSM_textbox_target1_mask.setText(
+                os.path.basename(param_map['target1_mask_fp']))
+
+            self.ui.MSM_textbox_target2_mask.setText(
+                os.path.basename(param_map['target2_mask_fp']))
 
             self.MSM_wd = param_map['wd']
             self.ui.MSM_textbox_wd.setText(param_map['wd'])
@@ -1669,6 +1675,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.SSM_tgt2_mask_fp = param_map['target1_mask_fp']
             self.SSM_tgt2_mask_fp = param_map['target2_mask_fp']
 
+            self.ui.SSM_textbox_source_mask.setText(
+                os.path.basename(param_map['source_mask_fp']))
+
+            self.ui.SSM_textbox_target1_mask.setText(
+                os.path.basename(param_map['target1_mask_fp']))
+
+            self.ui.SSM_textbox_target2_mask.setText(
+                os.path.basename(param_map['target2_mask_fp']))
+
             self.SSM_wd = param_map['wd']
             self.ui.SSM_textbox_wd.setText(param_map['wd'])
 
@@ -1737,6 +1752,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.SSS_src_mask_fp = param_map['source_mask_fp']
             self.SSS_tgt_mask_fp = param_map['target1_mask_fp']
 
+            self.ui.SSS_textbox_source_mask.setText(
+                os.path.basename(param_map['source_mask_fp']))
+
+            self.ui.SSS_textbox_target_mask.setText(
+                os.path.basename(param_map['target_mask_fp']))
+
             self.SSS_wd = param_map['wd']
             self.ui.SSS_textbox_wd.setText(param_map['wd'])
 
@@ -1790,6 +1811,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.MSS_src_mask_fp = param_map['source_mask_fp']
             self.MSS_tgt_mask_fp = param_map['target_mask_fp']
+
+            self.ui.MSS_textbox_source_mask.setText(
+                os.path.basename(param_map['source_mask_fp']))
+
+            self.ui.MSS_textbox_target_mask.setText(
+                os.path.basename(param_map['target_mask_fp']))
 
             self.MSS_wd = param_map['wd']
             self.ui.MSS_textbox_wd.setText(param_map['wd'])

@@ -7,7 +7,7 @@
 import os
 import time
 import datetime
-from regToolboxMSRC.utils.reg_utils import register_elx_, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess, parameter_load
+from regToolboxMSRC.utils.reg_utils import register_elx_n, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess, parameter_load
 import SimpleITK as sitk
 
 
@@ -22,9 +22,9 @@ def register_SSS(source_fp,
                  target_img_type,
                  reg_model,
                  project_name,
-                 return_image=False,
                  intermediate_output=False,
-                 bounding_box=False,
+                 bounding_box_source=True,
+                 bounding_box_target=True,
                  pass_in_project_name=False,
                  pass_in=None):
     """This function performs linear registration between 2 images from
@@ -95,6 +95,7 @@ def register_SSS(source_fp,
         os.makedirs(os.path.join(os.getcwd(), ts + project_name + "_images"))
         opdir = ts + project_name + "_images"
         pass_in = ts + project_name
+
     else:
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(), pass_in + "_images"))
@@ -106,33 +107,39 @@ def register_SSS(source_fp,
 
     #load images for registration:
     source = reg_image_preprocess(
-        source_fp, source_res, img_type=source_img_type)
+        source_fp,
+        source_res,
+        img_type=source_img_type,
+        mask_fp=source_mask_fp,
+        bounding_box=bounding_box_source)
+
     print(project_name + ": source image loaded")
 
     target = reg_image_preprocess(
-        target_fp, target_res, img_type=target_img_type)
-    print(project_name + ": target image loaded")
+        target_fp,
+        target_res,
+        img_type=target_img_type,
+        mask_fp=target_mask_fp,
+        bounding_box=bounding_box_target)
 
-    #registration
-    src_tgt1_tform = register_elx_(
-        source.image,
-        target.image,
+    print(project_name + ": target 1 image loaded")
+
+    #registration initial
+    src_tgt_tform_init = register_elx_n(
+        source,
+        target,
         reg_param1,
-        source_mask=source_mask_fp,
-        target_mask=target_mask_fp,
-        output_dir=pass_in + "_tforms_src_tgt1",
-        output_fn=pass_in + "_init_src_tgt1.txt",
+        output_dir=pass_in + "_tforms_src_tgt_init",
+        output_fn=pass_in + "_init_src_tgt_init.txt",
         return_image=False,
-        logging=True,
-        bounding_box=False)
+        intermediate_transform=False)
 
-    #transform result and save output
+    #transform intermediate result and save output
     os.chdir(wd)
 
-    tformed_im = transform_mc_image_sitk(source_fp, src_tgt1_tform, source_res)
-
-    #    if bounding_box == True and os.path.exists(target2_mask_fp):
-    #        tformed_im = paste_to_original_dim(tformed_im, fixed_x, fixed_y, final_size_2D)
+    ##source to target
+    tformed_im = transform_mc_image_sitk(
+        source_fp, src_tgt_tform_init, source_res, override_tform=False)
 
     if check_im_size_fiji(tformed_im) == True:
         sitk.WriteImage(tformed_im,
@@ -143,7 +150,7 @@ def register_SSS(source_fp,
                         os.path.join(os.getcwd(), opdir,
                                      project_name + "_src_tgt.tif"), True)
 
-    return os.path.join(os.getcwd(), opdir, project_name + "_src_tgt.tif")
+    return
 
 
 if __name__ == '__main__':
@@ -159,13 +166,12 @@ if __name__ == '__main__':
         dataMap['target_fp'],
         dataMap['target_res'],
         dataMap['source_mask_fp'],
-        dataMap['target1_mask_fp'],
+        dataMap['target_mask_fp'],
         dataMap['wd'],
         dataMap['source_img_type'],
         dataMap['target_img_type'],
-        dataMap['reg_model1'],
+        dataMap['reg_model'],
         dataMap['project_name'],
         intermediate_output=False,
-        bounding_box=dataMap['bounding_box'],
-        pass_in_project_name=True,
-        pass_in=dataMap['pass_in'])
+        bounding_box_source=dataMap['bounding_box_source'],
+        bounding_box_target=dataMap['bounding_box_target'])
