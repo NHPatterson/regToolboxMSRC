@@ -558,7 +558,7 @@ def register_elx_n(source,
     #    os.path.join(os.getcwd(), output_dir, output_fn + '.txt'))
 
     transformationMap = selx.GetTransformParameterMap()[0]
-	
+
     transformationMap['OriginalSizeMoving'] = [
         str(source.image_xy_dim[0]),
         str(source.image_xy_dim[1])
@@ -710,6 +710,7 @@ def transform_image(source, transformationMap, override_tform=False):
         if sum(bb_source) > 0:
             source = source[bb_source[0]:bb_source[0] + bb_source[2],
                             bb_source[1]:bb_source[1] + bb_source[3]]
+            source.SetOrigin([0, 0])
 
     transformix.SetMovingImage(source)
     transformix.SetTransformParameterMap(transformationMap)
