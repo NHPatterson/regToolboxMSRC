@@ -185,8 +185,12 @@ class RegImage(object):
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 image = sitk.GetImageFromArray(image)
                 image.SetSpacing(spacing)
-            else:
+
+            elif self.image.GetNumberOfComponentsPerPixel() > 1:
                 raise ValueError('Channel depth != 3, image is not RGB type')
+
+            elif self.image.GetNumberOfComponentsPerPixel() == 1:
+                image = self.image
 
         if self.im_format == 'np':
             if self.image.shape == 3 and self.image.shape[2] == 3:

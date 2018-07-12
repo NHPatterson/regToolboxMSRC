@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="SingleSecMulti">
      <attribute name="title">
@@ -3359,6 +3359,19 @@ color: rgb(255, 255, 255);</string>
       </property>
       <property name="text">
        <string>optional</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="TFM_button_clear_list">
+      <property name="geometry">
+       <rect>
+        <x>850</x>
+        <y>260</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear List</string>
       </property>
      </widget>
     </widget>

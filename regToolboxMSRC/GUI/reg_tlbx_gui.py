@@ -97,7 +97,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         #load in data stored in package
         resource_package = 'regToolboxMSRC'
-        resource_path = '/'.join(('GUI', 'MSRC_toolbox_v0_3.ui'))
+        resource_path = '/'.join(('GUI', 'MSRC_toolbox_v0_4.ui'))
         template = pkg_resources.resource_stream(resource_package,
                                                  resource_path)
 
@@ -266,6 +266,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.TFM_button_wd.clicked.connect(self.TFM_oc_wd)
 
         self.ui.TFM_button_apply_transform.clicked.connect(self.TFM_register)
+
+        self.ui.TFM_button_clear_list.clicked.connect(self.TFM_oc_clear_list)
 
         ############# Parameter loading/saving buttons
         self.ui.SSM_save_params.clicked.connect(self.SSM_oc_save_param)
@@ -626,7 +628,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 target_fp=self.SSS_target_fp,
                 target_res=target_res,
                 source_mask_fp=self.SSS_src_mask_fp,
-                target1_mask_fp=self.SSS_tgt_mask_fp,
+                target_mask_fp=self.SSS_tgt_mask_fp,
                 wd=self.SSS_wd,
                 source_img_type=SSS_source_img_type,
                 target_img_type=SSS_target_img_type,
@@ -1489,6 +1491,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     self, 'Error!', "The loaded parameter is invalid",
                     QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
+    def TFM_oc_clear_list(self):
+        self.ui.TFM_tform_list.clear()
+        self.TFM_transforms = []
+
     def TFM_register(self):
         if os.path.exists(self.TFM_source_fp) == False:
             QtWidgets.QMessageBox.question(
@@ -1750,7 +1756,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.SSS_tgt_reso.setText(param_map['target_res'])
 
             self.SSS_src_mask_fp = param_map['source_mask_fp']
-            self.SSS_tgt_mask_fp = param_map['target1_mask_fp']
+            self.SSS_tgt_mask_fp = param_map['target_mask_fp']
 
             self.ui.SSS_textbox_source_mask.setText(
                 os.path.basename(param_map['source_mask_fp']))

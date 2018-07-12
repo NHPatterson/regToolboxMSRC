@@ -103,6 +103,7 @@ def register_SSS(source_fp,
 
     #load registration parameters based on input
     reg_param1 = parameter_load(reg_model)
+    print('Running SSS Registration...')
     print(project_name + ': registration hyperparameters loaded')
 
     #load images for registration:
@@ -129,8 +130,8 @@ def register_SSS(source_fp,
         source,
         target,
         reg_param1,
-        output_dir=pass_in + "_tforms_src_tgt_init",
-        output_fn=pass_in + "_init_src_tgt_init.txt",
+        output_dir=pass_in + "_tforms_src_tgt",
+        output_fn=pass_in + "_init_src_tgt.txt",
         return_image=False,
         intermediate_transform=False)
 

@@ -118,6 +118,7 @@ def register_SSM(source_fp,
     #load registration parameters based on input
     reg_param1 = parameter_load(reg_model1)
     reg_param2 = parameter_load(reg_model2)
+    print('Running SSM Registration...')
     print(project_name + ': registration hyperparameters loaded')
 
     #load images for registration:

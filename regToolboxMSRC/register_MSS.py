@@ -102,6 +102,7 @@ def register_MSS(source_fp,
 
     #load registration parameters based on input
     reg_param1 = parameter_load(reg_model)
+    print('Running MSS Registration...')
     print(project_name + ': registration hyperparameters loaded')
 
     #load images for registration:
