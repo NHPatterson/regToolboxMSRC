@@ -2,9 +2,9 @@
 This python toolbox performs registration between 2-D microscopy images from the same tissue section or serial sections in several ways to achieve imaging mass spectrometry (IMS) experimental goals.
 
 This code supports the following works and enables others to perform the workflows outlined in the following works, please cite them if you use this toolbox:
-* *Advanced Registration and Analysis of MALDI Imaging Mass Spectrometry Measurements through Autofluorescence Microscopy*, [10.1021/acs.analchem.8b02884](10.1021/acs.analchem.8b02884)
+* *Advanced Registration and Analysis of MALDI Imaging Mass Spectrometry Measurements through Autofluorescence Microscopy*, [10.1021/acs.analchem.8b02884](https://pubs.acs.org/doi/10.1021/acs.analchem.8b02884)
 
-* *Next Generation Histology-directed Imaging Mass Spectrometry Driven by Autofluorescence Microscopy*, [10.1021/acs.analchem.8b02885](10.1021/acs.analchem.8b02885)
+* *Next Generation Histology-directed Imaging Mass Spectrometry Driven by Autofluorescence Microscopy*, [10.1021/acs.analchem.8b02885](https://pubs.acs.org/doi/10.1021/acs.analchem.8b02885)
 
 *N.B. As it stands this package is somewhat patchwork and can provide multipurpose outputs for downstream analysis in other software but does not do everything all in one (IMS data visualization & analysis).*
 
