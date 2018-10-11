@@ -1,4 +1,4 @@
-include regToolboxMSRC/GUI/MSRC_toolbox_v0_3.ui
+include regToolboxMSRC/GUI/MSRC_toolbox_v0_4.ui
 include regToolboxMSRC/parameter_files/affine.txt
 include regToolboxMSRC/parameter_files/affine_test.txt
 include regToolboxMSRC/parameter_files/fi_correction.txt

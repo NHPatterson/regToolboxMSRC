@@ -163,7 +163,7 @@ def register_MSS(source_fp,
         init_img,
         target_res,
         img_type='in_memory',
-        mask_fp=source_mask_fp,
+        mask_fp=None,
         bounding_box=False)
 
     src_tgt_tform_nl = register_elx_n(
@@ -216,8 +216,8 @@ if __name__ == '__main__':
         dataMap['wd'],  #output directory
         dataMap['source_img_type'],
         dataMap['target_img_type'],  #image type info 'RGB_l' or 'AF'
-        dataMap['reg_model'],  #initial transformation model
+        dataMap['reg_model1'],  #initial transformation model
         dataMap['project_name'],
-        intermediate_output=dataMap['intermediate_output'],
+        intermediate_output=False,
         bounding_box_source=dataMap['bounding_box_source'],
         bounding_box_target=dataMap['bounding_box_target'])

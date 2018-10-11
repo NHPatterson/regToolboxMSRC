@@ -16,7 +16,7 @@ def extract_ROI_coordinates(index_image_fp,
                             wd=''):
 
     os.chdir(wd)
-    ROIs = ROIhandler(index_image_fp, 1, is_mask=True)
+    ROIs = ROIhandler(index_image_fp, 1, is_mask=False)
     ROIs.get_polygons_ijroi(annotation_fp)
     ROIs.get_index_and_overlap(
         index_image_fp,
@@ -24,7 +24,11 @@ def extract_ROI_coordinates(index_image_fp,
         img_res,
         use_key=True,
         key_filepath=IMS_key_fp)
-    ROIs.rois_ims_indexed.to_csv(project_name + '_ROI_key.csv', index=False)
+    try:
+        ROIs.rois_ims_indexed.to_csv(project_name + '_ROI_key.csv', index=False)
+    except:
+        print('No ROIs found, none saved')
+        return
 
 
 if __name__ == '__main__':

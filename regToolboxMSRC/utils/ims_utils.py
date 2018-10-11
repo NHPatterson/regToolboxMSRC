@@ -243,13 +243,12 @@ class ImsPixelMaps(object):
 
     def generate_idx_mask(self):
         IMS_mask_idx = np.zeros((max(self.spots['y_minimized']),
-                                 max(self.spots['x_minimized'])))
+                                 max(self.spots['x_minimized'])),dtype=np.uint32)
         IMS_mask_idx[np.array(self.spots['y_minimized']) - 1,
                      np.array(self.spots['x_minimized']) - 1] = np.arange(
                          1,
                          len(np.array(self.spots['x_minimized'])) + 1, 1)
         IMS_mask_idx = sitk.GetImageFromArray(IMS_mask_idx)
-        IMS_mask_idx = sitk.Cast(IMS_mask_idx, sitk.sitkUInt32)
         self.idx_map_ims_scale = IMS_mask_idx
         IMS_mask_idx_upsampled = sitk.Expand(
             IMS_mask_idx, (int(self.scale_factor), int(self.scale_factor)),

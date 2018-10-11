@@ -171,7 +171,7 @@ if __name__ == '__main__':
         dataMap['wd'],
         dataMap['source_img_type'],
         dataMap['target_img_type'],
-        dataMap['reg_model'],
+        dataMap['reg_model1'],
         dataMap['project_name'],
         intermediate_output=False,
         bounding_box_source=dataMap['bounding_box_source'],

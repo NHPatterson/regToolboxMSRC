@@ -14,7 +14,6 @@ import lxml.builder
 import matplotlib
 from matplotlib import cm
 
-
 class ROIhandler(object):
     """Container class for handling ROIs loaded from ImageJ or a binary mask image.
 
@@ -29,13 +28,11 @@ class ROIhandler(object):
 
     """
 
-    def __init__(self, roi_image_fp, img_res, is_mask=False):
+    def __init__(self, roi_image_fp, img_res, is_mask=False, load_image = True):
         self.type = 'ROI Container'
         self.roi_image_fp = roi_image_fp
-        target_image = sitk.ReadImage(roi_image_fp)
         self.img_res = float(img_res)
 
-        self.zero_image = np.zeros(target_image.GetSize()[::-1])
 
         self.roi_corners = []
 
@@ -45,6 +42,7 @@ class ROIhandler(object):
 
     ##this function parses the ImageJ ROI file into all corners and far corners for rectangle ROIs
     #it only keeps the corners necessary for cv2 drawing
+    
     def get_rectangles_ijroi(self, ij_rois_fp):
         """Short summary.
 
@@ -61,6 +59,7 @@ class ROIhandler(object):
         """
 
         rois = ijroi.read_roi_zip(ij_rois_fp)
+        self.roi_names = [poly[0] for poly in rois]
         allcoords = [poly[1] for poly in rois]
         corners = [rect[[0, 2]] for rect in allcoords]
         self.roi_corners = corners
@@ -83,13 +82,37 @@ class ROIhandler(object):
 
         """
         fn, fe = os.path.splitext(ij_rois_fp)
-        print(fe)
+        #print(fe)
+        if fe == '.txt':
+            self.get_polygons_QP(ij_rois_fp)
+            return
         if fe == '.zip':
             rois = ijroi.read_roi_zip(ij_rois_fp)
         if fe == '.roi':
             rois = ijroi.read_roi(open(ij_rois_fp, "rb"))
-        polyallcoords = [poly[1] for poly in rois]
-        self.polygons = polyallcoords
+        self.polygons = [poly[1] for poly in rois]
+        self.roi_names = [poly[0] for poly in rois]
+
+    
+    #get polygons drawn in QuPath(https://qupath.github.io/)
+    #see QuPath export script as well
+    def get_polygons_QP(self, qp_rois_fp):
+        polys = pd.read_table(qp_rois_fp, sep='#',header=None)
+
+        polys[1] = polys[1].map(lambda x: x.lstrip('[').rstrip(']'))
+        polys[1] = polys[1].map(lambda x: x.replace('Point: ',''))
+        
+        polygons = []
+        for row in range(len(polys)):
+            poly_array = np.asarray(polys[1][row].split(', '), dtype=np.float64)
+            nrow = len(poly_array) / 2
+            poly_array = np.reshape(poly_array, [int(nrow),2])
+            poly_array = poly_array.round(0).astype(np.uint32)
+            poly_array = np.flip(poly_array,axis=1)
+            polygons.append(poly_array)
+            
+        self.polygons = polygons
+        self.roi_names = polys[0].tolist()
 
     ##this function draws the mask needed for general FI rois
     def draw_rect_mask(self):
@@ -155,59 +178,76 @@ class ROIhandler(object):
                               img_res,
                               use_key=False,
                               key_filepath=None):
+        
         if self.polygons:
-            ims_idx_np = sitk.GetArrayFromImage(
-                sitk.ReadImage(ims_index_map_fp))
+            ims_idx_np = sitk.ReadImage(ims_index_map_fp)
             scale_factor = ims_res / img_res
-            zero_img = np.zeros(ims_idx_np.shape[::-1])
-
-            for i in range(len(self.polygons)):
-                fill = cv2.fillConvexPoly(zero_img, self.polygons[i].astype(
-                    np.int32), i + 1)
-
-            fill = np.transpose(fill)
-
             dfs = []
-
             for i in range(len(self.polygons)):
-                whereresult = ims_idx_np[[
-                    np.where(fill == i + 1)[0],
-                    np.where(fill == i + 1)[1]
+                min_coord = np.min(self.polygons[i], axis = 0)         
+                max_coord = np.max(self.polygons[i], axis = 0)  
+                
+                ss_image = sitk.GetArrayFromImage(ims_idx_np[min_coord[1]:max_coord[1],min_coord[0]:max_coord[0]])
+                
+
+
+                fill_poly = self.polygons[i].copy()
+                fill_poly[:,0]  = fill_poly[:,0] - min_coord[0] 
+                fill_poly[:,1]  = fill_poly[:,1] - min_coord[1] 
+                
+                zero_img = np.zeros(ss_image.shape[::-1])
+
+                fill = cv2.fillConvexPoly(zero_img, fill_poly.astype(np.int32), i + 1)
+
+                fill = np.transpose(fill)
+                
+                whereresult = ss_image[[
+                np.where(fill == i + 1)[0],
+                np.where(fill == i + 1)[1]
                 ]]
-
                 uniques, counts = np.unique(whereresult, return_counts=True)
-
-                df_intermed = pd.DataFrame({
-                    'roi_index':
-                    i + 1,
-                    'ims_index':
-                    uniques,
-                    'percentage':
-                    counts / scale_factor**2
-                })
-
-                dfs.append(df_intermed)
-
-            df = pd.concat(dfs)
-            self.rois_ims_indexed = df
-            if use_key == True and key_filepath != None:
-                key = pd.read_csv(key_filepath, index_col=0)
-                self.rois_ims_indexed['x_original'] = key.loc[np.searchsorted(
-                    key.index.values, self.rois_ims_indexed['ims_index']
-                    .values), ['x']].values
-
-                self.rois_ims_indexed['y_original'] = key.loc[np.searchsorted(
-                    key.index.values, self.rois_ims_indexed['ims_index']
-                    .values), ['y']].values
-
-                self.rois_ims_indexed['x_minimized'] = key.loc[np.searchsorted(
-                    key.index.values, self.rois_ims_indexed['ims_index']
-                    .values), ['x_minimized']].values
-
-                self.rois_ims_indexed['y_minimized'] = key.loc[np.searchsorted(
-                    key.index.values, self.rois_ims_indexed['ims_index']
-                    .values), ['y_minimized']].values
-
+                non_zero_idx = uniques != 0
+                uniques = uniques[non_zero_idx]
+                counts = counts[non_zero_idx]
+                
+                if len(uniques) > 0:
+                    df_intermed = pd.DataFrame({
+                        'roi_index':
+                        i + 1,
+                        'roi_name':
+                        self.roi_names[i],
+                        'ims_index':
+                        uniques,
+                        'percentage':
+                        counts / scale_factor**2
+                    })
+    
+                    dfs.append(df_intermed)
+            
+            if len(dfs) == 0:
+                print('Loaded ROIs did not intersect with supplied IMS acquisition region')
+                
+            else:
+                df = pd.concat(dfs)
+                self.rois_ims_indexed = df
+                if use_key == True and key_filepath != None:
+                    key = pd.read_csv(key_filepath, index_col=0)
+                    self.rois_ims_indexed['x_original'] = key.loc[np.searchsorted(
+                        key.index.values, self.rois_ims_indexed['ims_index']
+                        .values), ['x']].values
+    
+                    self.rois_ims_indexed['y_original'] = key.loc[np.searchsorted(
+                        key.index.values, self.rois_ims_indexed['ims_index']
+                        .values), ['y']].values
+    
+                    self.rois_ims_indexed['x_minimized'] = key.loc[np.searchsorted(
+                        key.index.values, self.rois_ims_indexed['ims_index']
+                        .values), ['x_minimized']].values
+    
+                    self.rois_ims_indexed['y_minimized'] = key.loc[np.searchsorted(
+                        key.index.values, self.rois_ims_indexed['ims_index']
+                        .values), ['y_minimized']].values
+    
         else:
             raise ValueError('polygon coordinates have not been loaded')
 
@@ -522,72 +562,3 @@ def output_flex_rects(boundingRect_df,
     f.close()
 
 
-# def bruker_output_xmls(source_fp,
-#                        target_fp,
-#                        wd,
-#                        ijroi_fp,
-#                        project_name,
-#                        ims_resolution=10,
-#                        ims_method="par",
-#                        roi_name="roi",
-#                        splits="0"):
-#
-#     ts = datetime.datetime.fromtimestamp(
-#         time.time()).strftime('%Y%m%d_%H_%M_%S_')
-#     no_splits = int(splits)
-#
-#     #register
-#     os.chdir(wd)
-#
-#     #get FI tform
-#     source_image = reg_image_preprocess(source_fp, 1, img_type='AF')
-#     target_image = reg_image_preprocess(target_fp, 1, img_type='AF')
-#
-#     param = parameter_files()
-#
-#     tmap_correction = register_elx_(
-#         source_image.image,
-#         target_image.image,
-#         param.correction,
-#         moving_mask=None,
-#         fixed_mask=None,
-#         output_dir=ts + project_name + "_tforms_FI_correction",
-#         output_fn=ts + project_name + "_correction.txt",
-#         logging=True)
-#
-#     #rois:
-#     rois = ROIhandler(source_fp, 1, is_mask=False)
-#     rois.get_rectangles_ijroi(ijroi_fp)
-#     rois.draw_rect_mask(return_np=False)
-#     rois = transform_mc_image_sitk(
-#         rois.box_mask,
-#         tmap_correction,
-#         1,
-#         from_file=False,
-#         is_binary_mask=True)
-#     rois = sitk.GetArrayFromImage(rois)
-#
-#     #get bounding rect. after transformation
-#     roi_coords = mask_contours_to_boxes(rois)
-#
-#     #save csv of data
-#     roi_coords.to_csv(ts + project_name + roi_name + ".csv", index=False)
-#
-#     #parse csv file into flexImaging xml for RECTANGLES!!!! only!!
-#     output_flex_rects(
-#         roi_coords,
-#         imsres=ims_resolution,
-#         imsmethod=ims_method,
-#         roiname=roi_name + "_",
-#         filename=ts + project_name + roi_name + ".xml")
-#
-#     if no_splits > 1:
-#         split_boxes(
-#             roi_coords,
-#             no_splits=no_splits,
-#             base_name=ts + project_name + roi_name,
-#             ims_res=ims_resolution,
-#             ims_method=ims_method,
-#             roi_name=roi_name)
-#
-#     return

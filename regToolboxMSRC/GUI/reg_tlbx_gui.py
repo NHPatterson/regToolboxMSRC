@@ -881,9 +881,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         else:
-            ims_res = int(self.ui.IMS_ims_reso.text())
-            img_res = int(self.ui.IMS_micro_reso.text())
-            padding = int(self.ui.IMS_padding.text())
+            ims_res = float(self.ui.IMS_ims_reso.text())
+            img_res = float(self.ui.IMS_micro_reso.text())
+            padding = float(self.ui.IMS_padding.text())
 
             project_name = str(self.ui.IMS_textbox_fn.text())
 

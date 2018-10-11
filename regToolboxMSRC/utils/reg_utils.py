@@ -720,32 +720,33 @@ def transform_image(source, transformationMap, override_tform=False):
     transformix.SetTransformParameterMap(transformationMap)
     transformix.LogToConsoleOn()
     source_tformed = transformix.Execute()
-
-    if source_tformed.GetSize(
-    ) != transformationMap['OriginalSizeFixed'] and override_tform == True:
-
-        bb = list(transformationMap['BoundingBoxFixed'])
-        bb = [int(float(x)) for x in bb]
-
-        img_size = list(transformationMap['OriginalSizeFixed'])
-        img_size = [int(float(x)) for x in img_size]
-
-        source_tformed = paste_to_original_dim(source_tformed, bb[0], bb[1],
-                                               (img_size[0], img_size[1]))
-        overriden_flag = True
-
-    if source_tformed.GetSize(
-    ) != transformationMap['OriginalSizeFixed'] and transformationMap['IntermediateTransform'] == (
-            'false', ) and overriden_flag == False:
-
-        bb_target = list(transformationMap['BoundingBoxFixed'])
-        bb_target = [int(float(x)) for x in bb_target]
-        img_size = list(transformationMap['OriginalSizeFixed'])
-        img_size = [int(float(x)) for x in img_size]
-
-        source_tformed = paste_to_original_dim(source_tformed, bb_target[0],
-                                               bb_target[1],
-                                               (img_size[0], img_size[1]))
+    
+    if 'OriginalSizeFixed' in transformationMap:
+        if source_tformed.GetSize(
+        ) != transformationMap['OriginalSizeFixed'] and override_tform == True:
+    
+            bb = list(transformationMap['BoundingBoxFixed'])
+            bb = [int(float(x)) for x in bb]
+    
+            img_size = list(transformationMap['OriginalSizeFixed'])
+            img_size = [int(float(x)) for x in img_size]
+    
+            source_tformed = paste_to_original_dim(source_tformed, bb[0], bb[1],
+                                                   (img_size[0], img_size[1]))
+            overriden_flag = True
+    
+        if source_tformed.GetSize(
+        ) != transformationMap['OriginalSizeFixed'] and transformationMap['IntermediateTransform'] == (
+                'false', ) and overriden_flag == False:
+    
+            bb_target = list(transformationMap['BoundingBoxFixed'])
+            bb_target = [int(float(x)) for x in bb_target]
+            img_size = list(transformationMap['OriginalSizeFixed'])
+            img_size = [int(float(x)) for x in img_size]
+    
+            source_tformed = paste_to_original_dim(source_tformed, bb_target[0],
+                                                   bb_target[1],
+                                                   (img_size[0], img_size[1]))
 
     img_spacing = [float(x) for x in transformationMap['Spacing']]
     source_tformed.SetSpacing(img_spacing)
