@@ -12,7 +12,6 @@ from regToolboxMSRC.register_SSS import register_SSS
 from regToolboxMSRC.register_MSS import register_MSS
 from regToolboxMSRC.find_IMS_overlap import IMS_ablation_overlap
 from regToolboxMSRC.roi_extraction import extract_ROI_coordinates
-from regToolboxMSRC.utils.reg_utils import transform_from_gui
 from regToolboxMSRC.utils.ims_utils import ImsPixelMaps
 from regToolboxMSRC.bruker_hist_directed import bruker_output_xmls
 from regToolboxMSRC.arbitrary_img_tform import arbitrary_transform
@@ -879,11 +878,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 self, 'Error!', "You haven't set the working directory!",
                 QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
             return
-
+        
+        elif (float(self.ui.IMS_ims_reso.text()) / float(self.ui.IMS_micro_reso.text())).is_integer() == False:
+            QtWidgets.QMessageBox.question(
+            self, 'Error!', "IMS resolution / microscopy resolution must be a whole number",
+            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+        
         else:
+            
             ims_res = float(self.ui.IMS_ims_reso.text())
             img_res = float(self.ui.IMS_micro_reso.text())
             padding = float(self.ui.IMS_padding.text())
+
 
             project_name = str(self.ui.IMS_textbox_fn.text())
 
