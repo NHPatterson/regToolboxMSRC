@@ -46,7 +46,7 @@
 (Optimizer "AdaptiveStochasticGradientDescent")
 (Metric "AdvancedMattesMutualInformation")
 //(Metric "AdvancedNormalizedCorrelation")
-(Transform "EulerTransform")
+(Transform "TranslationTransform")
 //(Metric "AdvancedMeanSquares")
 //(UseNormalization "true")
 

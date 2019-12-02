@@ -14,6 +14,7 @@ import lxml.builder
 import matplotlib
 from matplotlib import cm
 
+
 class ROIhandler(object):
     """Container class for handling ROIs loaded from ImageJ or a binary mask image.
 
@@ -28,21 +29,20 @@ class ROIhandler(object):
 
     """
 
-    def __init__(self, roi_image_fp, img_res, is_mask=False, load_image = True):
-        self.type = 'ROI Container'
+    def __init__(self, roi_image_fp, img_res, is_mask=False, load_image=True):
+        self.type = "ROI Container"
         self.roi_image_fp = roi_image_fp
         self.img_res = float(img_res)
 
-
         self.roi_corners = []
 
-        if is_mask == True:
+        if is_mask is True:
             self.roi_mask = sitk.ReadImage(roi_image_fp)
             self.roi_mask.SetSpacing((self.img_res, self.img_res))
 
-    ##this function parses the ImageJ ROI file into all corners and far corners for rectangle ROIs
-    #it only keeps the corners necessary for cv2 drawing
-    
+    # this function parses the ImageJ ROI file into all corners and far corners for rectangle ROIs
+    # it only keeps the corners necessary for cv2 drawing
+
     def get_rectangles_ijroi(self, ij_rois_fp):
         """Short summary.
 
@@ -57,6 +57,15 @@ class ROIhandler(object):
             Python lists of rectangle corners and all 4 corner coords.
 
         """
+        fn, fe = os.path.splitext(ij_rois_fp)
+        # print(fe)
+        if fe == ".txt":
+            self.get_polygons_QP(ij_rois_fp, rectangle=True)
+            return
+        if fe == ".zip":
+            rois = ijroi.read_roi_zip(ij_rois_fp)
+        if fe == ".roi":
+            rois = ijroi.read_roi(open(ij_rois_fp, "rb"))
 
         rois = ijroi.read_roi_zip(ij_rois_fp)
         self.roi_names = [poly[0] for poly in rois]
@@ -65,7 +74,7 @@ class ROIhandler(object):
         self.roi_corners = corners
         self.allcoords = allcoords
 
-    ###grabs polygonal ijrois
+    # grabs polygonal ijrois
     def get_polygons_ijroi(self, ij_rois_fp):
         """Short summary.
 
@@ -82,39 +91,44 @@ class ROIhandler(object):
 
         """
         fn, fe = os.path.splitext(ij_rois_fp)
-        #print(fe)
-        if fe == '.txt':
+        # print(fe)
+        if fe == ".txt":
             self.get_polygons_QP(ij_rois_fp)
             return
-        if fe == '.zip':
+        if fe == ".zip":
             rois = ijroi.read_roi_zip(ij_rois_fp)
-        if fe == '.roi':
+        if fe == ".roi":
             rois = ijroi.read_roi(open(ij_rois_fp, "rb"))
         self.polygons = [poly[1] for poly in rois]
         self.roi_names = [poly[0] for poly in rois]
 
-    
-    #get polygons drawn in QuPath(https://qupath.github.io/)
-    #see QuPath export script as well
-    def get_polygons_QP(self, qp_rois_fp):
-        polys = pd.read_table(qp_rois_fp, sep='#',header=None)
+    # get polygons drawn in QuPath(https://qupath.github.io/)
+    # see QuPath export script as well
+    def get_polygons_QP(self, qp_rois_fp, rectangle=False, ds_levels=1):
+        polys = pd.read_table(qp_rois_fp, sep="#", header=None)
 
-        polys[1] = polys[1].map(lambda x: x.lstrip('[').rstrip(']'))
-        polys[1] = polys[1].map(lambda x: x.replace('Point: ',''))
-        
+        polys[1] = polys[1].map(lambda x: x.lstrip("[").rstrip("]"))
+        polys[1] = polys[1].map(lambda x: x.replace("Point: ", ""))
+
         polygons = []
         for row in range(len(polys)):
-            poly_array = np.asarray(polys[1][row].split(', '), dtype=np.float64)
+            poly_array = np.asarray(polys[1][row].split(", "), dtype=np.float64)
             nrow = len(poly_array) / 2
-            poly_array = np.reshape(poly_array, [int(nrow),2])
+            poly_array = np.reshape(poly_array, [int(nrow), 2])
             poly_array = poly_array.round(0).astype(np.uint32)
-            poly_array = np.flip(poly_array,axis=1)
+            poly_array = np.flip(poly_array, axis=1)
             polygons.append(poly_array)
-            
+
         self.polygons = polygons
         self.roi_names = polys[0].tolist()
 
-    ##this function draws the mask needed for general FI rois
+        if rectangle is True:
+
+            corners = [rect[[0, 2]] for rect in self.polygons]
+            self.roi_corners = corners
+            self.allcoords = self.polygons
+
+    # this function draws the mask needed for general FI rois
     def draw_rect_mask(self):
         """Draws uint8 binary mask image based on rectangle coords.
 
@@ -125,7 +139,11 @@ class ROIhandler(object):
 
         """
         if len(self.roi_corners) == 0:
-            raise ValueError('Rois have not been generated')
+            raise ValueError("Rois have not been generated")
+
+        self.zero_image = np.zeros_like(
+            sitk.GetArrayFromImage(sitk.ReadImage(self.roi_image_fp))
+        )
 
         for i in range(len(self.roi_corners)):
             if i == 0:
@@ -134,18 +152,20 @@ class ROIhandler(object):
                     (self.roi_corners[i][0][1], self.roi_corners[i][0][0]),
                     (self.roi_corners[i][1][1], self.roi_corners[i][1][0]),
                     (255),
-                    thickness=-1)
+                    thickness=-1,
+                )
             else:
                 filled = cv2.rectangle(
                     filled,
                     (self.roi_corners[i][0][1], self.roi_corners[i][0][0]),
                     (self.roi_corners[i][1][1], self.roi_corners[i][1][0]),
                     (255),
-                    thickness=-1)
-        self.box_mask = sitk.GetImageFromArray(filled.astype(np.int8))
+                    thickness=-1,
+                )
+        self.box_mask = sitk.GetImageFromArray(filled.astype(np.uint8))
         self.box_mask.SetSpacing((self.img_res, self.img_res))
 
-    ##this function slices all the rois into sitk images
+    # this function slices all the rois into sitk images
     def get_rect_rois_as_images(self, image_fp):
         """Slice images based on loaded rectangles.
 
@@ -161,127 +181,142 @@ class ROIhandler(object):
 
         """
         if len(self.roi_corners) == 0:
-            raise ValueError('Rois have not been generated')
+            raise ValueError("Rois have not been generated")
 
         bg_image = sitk.ReadImage(image_fp)
         roi_slices = []
 
         for i in range(len(self.allcoords)):
-            roi_slices.append(bg_image[self.allcoords[i][0][1]:self.allcoords[
-                i][1][1], self.allcoords[i][0][0]:self.allcoords[i][3][0]])
+            roi_slices.append(
+                bg_image[
+                    self.allcoords[i][0][1] : self.allcoords[i][1][1],
+                    self.allcoords[i][0][0] : self.allcoords[i][3][0],
+                ]
+            )
         self.roi_slices = []
         self.roi_slices.append(roi_slices)
 
-    def get_index_and_overlap(self,
-                              ims_index_map_fp,
-                              ims_res,
-                              img_res,
-                              use_key=False,
-                              key_filepath=None):
-        
+    def get_index_and_overlap(
+        self, ims_index_map_fp, ims_res, img_res, use_key=False, key_filepath=None
+    ):
+
         if self.polygons:
             ims_idx_np = sitk.ReadImage(ims_index_map_fp)
             scale_factor = ims_res / img_res
             dfs = []
             for i in range(len(self.polygons)):
-                min_coord = np.min(self.polygons[i], axis = 0)         
-                max_coord = np.max(self.polygons[i], axis = 0)  
-                
-                ss_image = sitk.GetArrayFromImage(ims_idx_np[min_coord[1]:max_coord[1],min_coord[0]:max_coord[0]])
-                
+                min_coord = np.min(self.polygons[i], axis=0)
+                max_coord = np.max(self.polygons[i], axis=0)
 
+                ss_image = sitk.GetArrayFromImage(
+                    ims_idx_np[min_coord[1] : max_coord[1], min_coord[0] : max_coord[0]]
+                )
 
                 fill_poly = self.polygons[i].copy()
-                fill_poly[:,0]  = fill_poly[:,0] - min_coord[0] 
-                fill_poly[:,1]  = fill_poly[:,1] - min_coord[1] 
-                
+                fill_poly[:, 0] = fill_poly[:, 0] - min_coord[0]
+                fill_poly[:, 1] = fill_poly[:, 1] - min_coord[1]
+
                 zero_img = np.zeros(ss_image.shape[::-1])
 
                 fill = cv2.fillConvexPoly(zero_img, fill_poly.astype(np.int32), i + 1)
 
                 fill = np.transpose(fill)
-                
-                whereresult = ss_image[[
-                np.where(fill == i + 1)[0],
-                np.where(fill == i + 1)[1]
-                ]]
+
+                whereresult = ss_image[
+                    [np.where(fill == i + 1)[0], np.where(fill == i + 1)[1]]
+                ]
                 uniques, counts = np.unique(whereresult, return_counts=True)
                 non_zero_idx = uniques != 0
                 uniques = uniques[non_zero_idx]
                 counts = counts[non_zero_idx]
-                
+
                 if len(uniques) > 0:
-                    df_intermed = pd.DataFrame({
-                        'roi_index':
-                        i + 1,
-                        'roi_name':
-                        self.roi_names[i],
-                        'ims_index':
-                        uniques,
-                        'percentage':
-                        counts / scale_factor**2
-                    })
-    
+                    df_intermed = pd.DataFrame(
+                        {
+                            "roi_index": i + 1,
+                            "roi_name": self.roi_names[i],
+                            "ims_index": uniques,
+                            "percentage": counts / scale_factor ** 2,
+                        }
+                    )
+
                     dfs.append(df_intermed)
-            
+
             if len(dfs) == 0:
-                print('Loaded ROIs did not intersect with supplied IMS acquisition region')
-                
+                print(
+                    "Loaded ROIs did not intersect with supplied IMS acquisition region"
+                )
+
             else:
                 df = pd.concat(dfs)
                 self.rois_ims_indexed = df
-                if use_key == True and key_filepath != None:
+                if use_key is True and key_filepath is not None:
                     key = pd.read_csv(key_filepath, index_col=0)
-                    self.rois_ims_indexed['x_original'] = key.loc[np.searchsorted(
-                        key.index.values, self.rois_ims_indexed['ims_index']
-                        .values), ['x']].values
-    
-                    self.rois_ims_indexed['y_original'] = key.loc[np.searchsorted(
-                        key.index.values, self.rois_ims_indexed['ims_index']
-                        .values), ['y']].values
-    
-                    self.rois_ims_indexed['x_minimized'] = key.loc[np.searchsorted(
-                        key.index.values, self.rois_ims_indexed['ims_index']
-                        .values), ['x_minimized']].values
-    
-                    self.rois_ims_indexed['y_minimized'] = key.loc[np.searchsorted(
-                        key.index.values, self.rois_ims_indexed['ims_index']
-                        .values), ['y_minimized']].values
-    
+                    self.rois_ims_indexed["x_original"] = key.loc[
+                        np.searchsorted(
+                            key.index.values, self.rois_ims_indexed["ims_index"].values
+                        ),
+                        ["x"],
+                    ].values
+
+                    self.rois_ims_indexed["y_original"] = key.loc[
+                        np.searchsorted(
+                            key.index.values, self.rois_ims_indexed["ims_index"].values
+                        ),
+                        ["y"],
+                    ].values
+
+                    self.rois_ims_indexed["x_minimized"] = key.loc[
+                        np.searchsorted(
+                            key.index.values, self.rois_ims_indexed["ims_index"].values
+                        ),
+                        ["x_minimized"],
+                    ].values
+
+                    self.rois_ims_indexed["y_minimized"] = key.loc[
+                        np.searchsorted(
+                            key.index.values, self.rois_ims_indexed["ims_index"].values
+                        ),
+                        ["y_minimized"],
+                    ].values
+
         else:
-            raise ValueError('polygon coordinates have not been loaded')
+            raise ValueError("polygon coordinates have not been loaded")
 
     def draw_polygon_mask(self, binary_mask=True, flip_xy=True):
+
+        self.zero_image = np.zeros_like(
+            sitk.GetArrayFromImage(sitk.ReadImage(self.roi_image_fp))
+        )
         if self.polygons:
             zero_img = self.zero_image.copy()
 
             for i in range(len(self.polygons)):
 
                 draw_polygons = self.polygons[i].astype(np.int32)
-                if flip_xy == True:
+                if flip_xy is True:
                     draw_polygons[:, [0, 1]] = draw_polygons[:, [1, 0]]
-                if binary_mask == True:
-                    cc = cv2.fillConvexPoly(
-                        zero_img, draw_polygons, 255, lineType=4)
+                if binary_mask is True:
+                    cc = cv2.fillConvexPoly(zero_img, draw_polygons, 255, lineType=4)
                     self.pg_mask = sitk.GetImageFromArray(cc.astype(np.uint8))
 
                 else:
-                    cc = cv2.fillConvexPoly(
-                        zero_img, draw_polygons, i + 1, lineType=4)
+                    cc = cv2.fillConvexPoly(zero_img, draw_polygons, i + 1, lineType=4)
                     self.pg_mask = sitk.GetImageFromArray(cc.astype(np.uint32))
 
-            #cc = np.transpose(cc)
+            # cc = np.transpose(cc)
             self.pg_mask.SetSpacing((self.img_res, self.img_res))
 
         else:
-            raise ValueError('polygon coordinates have not been loaded')
+            raise ValueError("polygon coordinates have not been loaded")
 
 
 def mask_contours_to_polygons(binary_mask, arcLenPercent=0.05):
 
     ret, threshsrc = cv2.threshold(binary_mask, 1, 256, 0)
-    im2, contours, hierarchy = cv2.findContours(threshsrc, cv2.RETR_EXTERNAL,
-                                                cv2.CHAIN_APPROX_NONE)
+    im2, contours, hierarchy = cv2.findContours(
+        threshsrc, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+    )
 
     approxPolygon = []
 
@@ -291,14 +326,15 @@ def mask_contours_to_polygons(binary_mask, arcLenPercent=0.05):
         polygon = cv2.approxPolyDP(cnt, epsilon, True)
         approxPolygon.append(polygon[:, 0, :])
 
-    return (approxPolygon)
+    return approxPolygon
 
 
 def mask_contours_to_boxes(binary_mask):
 
     ret, threshsrc = cv2.threshold(binary_mask, 1, 256, 0)
-    im2, contours, hierarchy = cv2.findContours(threshsrc, cv2.RETR_EXTERNAL,
-                                                cv2.CHAIN_APPROX_NONE)
+    im2, contours, hierarchy = cv2.findContours(
+        threshsrc, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+    )
 
     xs = []
     ys = []
@@ -312,27 +348,29 @@ def mask_contours_to_boxes(binary_mask):
         ys.append(y)
         ws.append(w)
         hs.append(h)
-    boxes = pd.DataFrame(xs, columns=['x1'])
-    boxes['y1'] = ys
-    boxes['x2'] = np.array(xs) + np.array(ws)
-    boxes['y2'] = np.array(ys) + np.array(hs)
+    boxes = pd.DataFrame(xs, columns=["x1"])
+    boxes["y1"] = ys
+    boxes["x2"] = np.array(xs) + np.array(ws)
+    boxes["y2"] = np.array(ys) + np.array(hs)
 
-    boxes['p1'] = boxes['x1'].map(str) + ',' + boxes['y1'].map(str)
-    boxes['p2'] = boxes['x2'].map(str) + ',' + boxes['y2'].map(str)
+    boxes["p1"] = boxes["x1"].map(str) + "," + boxes["y1"].map(str)
+    boxes["p2"] = boxes["x2"].map(str) + "," + boxes["y2"].map(str)
 
-    boxes = boxes.sort_values(['y1'], ascending=True)
+    boxes = boxes.sort_values(["y1"], ascending=True)
     boxes = boxes.reset_index()
 
-    return (boxes)
+    return boxes
 
 
-#randomly split rois and reset parameters
-def split_boxes(roi_coords,
-                no_splits=4,
-                base_name="base",
-                ims_res="20",
-                ims_method="par",
-                roi_name="roi"):
+# randomly split rois and reset parameters
+def split_boxes(
+    roi_coords,
+    no_splits=4,
+    base_name="base",
+    ims_res="20",
+    ims_method="par",
+    roi_name="roi",
+):
 
     shuffled_rois = roi_coords.sample(frac=1)
     nrow_df = shuffled_rois.shape[0]
@@ -343,7 +381,7 @@ def split_boxes(roi_coords,
     for i in range(no_splits):
 
         if i == 0:
-            splits.append(shuffled_rois.iloc[0:int(select_seq[i + 1])])
+            splits.append(shuffled_rois.iloc[0 : int(select_seq[i + 1])])
 
         elif i > 0 and i < no_splits - 1:
 
@@ -358,28 +396,31 @@ def split_boxes(roi_coords,
             splits.append(shuffled_rois.iloc[first_idx:last_idx])
 
     for i in range(len(splits)):
-        splits[i] = splits[i].sort_values(['y1'], ascending=True)
+        splits[i] = splits[i].sort_values(["y1"], ascending=True)
         splits[i] = splits[i].reset_index(drop=True)
 
-        #save csv of data
+        # save csv of data
         splits[i].to_csv(base_name + "_" + str(i) + ".csv", index=False)
 
-        #parse csv file into flexImaging xml for RECTANGLES!!!! only!!
+        # parse csv file into flexImaging xml for RECTANGLES!!!! only!!
         output_flex_rects(
             splits[i],
             imsres=ims_res,
             imsmethod=ims_method,
             roiname=roi_name + "_split" + str(i) + "_",
-            filename=base_name + "_" + str(i) + ".xml")
+            filename=base_name + "_" + str(i) + ".xml",
+        )
 
 
-#randomly split rois and reset parameters
-def split_polys(polygons,
-                no_splits=4,
-                base_name="base",
-                ims_res="20",
-                ims_method="par",
-                roi_name="roi"):
+# randomly split rois and reset parameters
+def split_polys(
+    polygons,
+    no_splits=4,
+    base_name="base",
+    ims_res="20",
+    ims_method="par",
+    roi_name="roi",
+):
 
     shuffled_rois = pd.Series(np.arange(0, len(polygons), 1)).sample(frac=1)
     shuffled_rois = shuffled_rois.tolist()
@@ -395,8 +436,7 @@ def split_polys(polygons,
     for i in range(no_splits):
 
         if i == 0:
-            splits.append(
-                np.array(polygons)[0:int(select_seq[i + 1])].tolist())
+            splits.append(np.array(polygons)[0 : int(select_seq[i + 1])].tolist())
 
         elif i > 0 and i < no_splits - 1:
 
@@ -411,56 +451,56 @@ def split_polys(polygons,
             splits.append(np.array(polygons)[first_idx:last_idx].tolist())
 
     for i in range(len(splits)):
-        #parse csv file into flexImaging xml for RECTANGLES!!!! only!!
+        # parse csv file into flexImaging xml for RECTANGLES!!!! only!!
         output_flex_polys(
             splits[i],
             imsres=ims_res,
             imsmethod=ims_method,
             roiname=roi_name + "_split" + str(i) + "_",
-            filename=base_name + "_" + str(i) + ".xml")
+            filename=base_name + "_" + str(i) + ".xml",
+        )
 
 
 def sort_pg_list(polygons):
-    #fastest sorting for flexImaging import of polygons
+    # fastest sorting for flexImaging import of polygons
     min_list = []
     for i in range(len(polygons)):
         min_list.append(np.min(polygons[i][:, 0]))
 
     polygons_sorted = np.array(polygons)[np.argsort(min_list)].tolist()
 
-    ##doesn't work
-    #for i in range(len(polygons_sorted)):
+    # doesn't work
+    # for i in range(len(polygons_sorted)):
     #    polygons_sorted[i] = np.sort(polygons_sorted[i],axis=0)
 
     return polygons_sorted
 
 
-##output xml file with FI compatible ROIs for polygons
-def output_flex_polys(polygons,
-                      imsres="100",
-                      imsmethod="mymethod.par",
-                      roiname="myroi_",
-                      filename="myxml.xml",
-                      idxed=False):
+# output xml file with FI compatible ROIs for polygons
+def output_flex_polys(
+    polygons,
+    imsres="100",
+    imsmethod="mymethod.par",
+    roiname="myroi_",
+    filename="myxml.xml",
+    idxed=False,
+):
 
-    #sort list from low to high y
-    #this seems to produce less issues in flexImaging
+    # sort list from low to high y
+    # this seems to produce less issues in flexImaging
     polygons = sort_pg_list(polygons)
 
-    ##FI polygons to FlexImaging format:
-    cmap = cm.get_cmap('Spectral', len(polygons))  # PiYG
+    # FI polygons to FlexImaging format:
+    cmap = cm.get_cmap("Spectral", len(polygons))  # PiYG
     rgbs = []
     for i in range(cmap.N):
-        rgb = cmap(
-            i)[:3]  # will return rgba, we take only first 3 so we get rgb
+        rgb = cmap(i)[:3]  # will return rgba, we take only first 3 so we get rgb
         rgbs.append(matplotlib.colors.rgb2hex(rgb))
 
-    polygon_df = pd.DataFrame(
-        np.arange(1,
-                  len(polygons) + 1, 1), columns=['idx'])
-    polygon_df['namefrag'] = roiname
-    polygon_df['name'] = polygon_df['namefrag'] + polygon_df['idx'].map(str)
-    polygon_df['SpectrumColor'] = rgbs
+    polygon_df = pd.DataFrame(np.arange(1, len(polygons) + 1, 1), columns=["idx"])
+    polygon_df["namefrag"] = roiname
+    polygon_df["name"] = polygon_df["namefrag"] + polygon_df["idx"].map(str)
+    polygon_df["SpectrumColor"] = rgbs
 
     areaxmls = []
 
@@ -475,31 +515,35 @@ def output_flex_polys(polygons,
             for i in range(len(polygons[j])):
                 POINTFIELDS.append(E.Point)
 
-            imsraster = str(imsres) + ',' + str(imsres)
+            imsraster = str(imsres) + "," + str(imsres)
 
             if len(polygons[j]) < 3:
                 output_type = 0
             else:
                 output_type = 3
             the_doc = ROOT(
-                '',
+                "",
                 Type=str(output_type),
-                Name=polygon_df['name'][j],
+                Name=polygon_df["name"][j],
                 Enabled="0",
                 ShowSpectra="0",
-                SpectrumColor=polygon_df['SpectrumColor'][j])
+                SpectrumColor=polygon_df["SpectrumColor"][j],
+            )
             the_doc.append(FIELD1(imsraster))
             the_doc.append(FIELD2(imsmethod))
             for i in range(len(polygons[j])):
-                the_doc.append(POINTFIELDS[i](
-                    str(polygons[j][i][0]) + ',' + str(polygons[j][i][1])))
+                the_doc.append(
+                    POINTFIELDS[i](
+                        str(polygons[j][i][0]) + "," + str(polygons[j][i][1])
+                    )
+                )
 
             areaxmls.append(
-                lxml.etree.tostring(
-                    the_doc, pretty_print=True, encoding='unicode'))
+                lxml.etree.tostring(the_doc, pretty_print=True, encoding="unicode")
+            )
         else:
             pass
-    f = open(filename, 'w')
+    f = open(filename, "w")
     for i in range(len(areaxmls)):
         f.write(areaxmls[i])  # python will convert \n to os.linesep
     f.close()
@@ -507,26 +551,27 @@ def output_flex_polys(polygons,
     return
 
 
-def output_flex_rects(boundingRect_df,
-                      imsres="100",
-                      imsmethod="mymethod.par",
-                      roiname="myroi_",
-                      filename="myxml.xml"):
+def output_flex_rects(
+    boundingRect_df,
+    imsres="100",
+    imsmethod="mymethod.par",
+    roiname="myroi_",
+    filename="myxml.xml",
+):
 
-    ##FI boxes to FlexImaging format:
-    cmap = cm.get_cmap('Spectral', len(boundingRect_df))  # PiYG
+    # FI boxes to FlexImaging format:
+    cmap = cm.get_cmap("Spectral", len(boundingRect_df))  # PiYG
     rgbs = []
     for i in range(cmap.N):
-        rgb = cmap(
-            i)[:3]  # will return rgba, we take only first 3 so we get rgb
+        rgb = cmap(i)[:3]  # will return rgba, we take only first 3 so we get rgb
         rgbs.append(matplotlib.colors.rgb2hex(rgb))
 
     metadata_df = pd.DataFrame(
-        np.arange(1,
-                  len(boundingRect_df) + 1, 1), columns=['idx'])
-    metadata_df['namefrag'] = roiname
-    metadata_df['name'] = metadata_df['namefrag'] + metadata_df['idx'].map(str)
-    metadata_df['SpectrumColor'] = rgbs
+        np.arange(1, len(boundingRect_df) + 1, 1), columns=["idx"]
+    )
+    metadata_df["namefrag"] = roiname
+    metadata_df["name"] = metadata_df["namefrag"] + metadata_df["idx"].map(str)
+    metadata_df["SpectrumColor"] = rgbs
 
     areaxmls = []
 
@@ -538,27 +583,26 @@ def output_flex_rects(boundingRect_df,
         POINT1 = E.Point
         POINT2 = E.Point
 
-        imsraster = str(imsres) + ',' + str(imsres)
+        imsraster = str(imsres) + "," + str(imsres)
 
         the_doc = ROOT(
-            '',
+            "",
             Type="0",
-            Name=metadata_df['name'][j],
+            Name=metadata_df["name"][j],
             Enabled="0",
             ShowSpectra="0",
-            SpectrumColor=metadata_df['SpectrumColor'][j])
+            SpectrumColor=metadata_df["SpectrumColor"][j],
+        )
         the_doc.append(FIELD1(imsraster))
         the_doc.append(FIELD2(imsmethod))
-        the_doc.append(POINT1(str(boundingRect_df['p1'][j])))
-        the_doc.append(POINT2(str(boundingRect_df['p2'][j])))
+        the_doc.append(POINT1(str(boundingRect_df["p1"][j])))
+        the_doc.append(POINT2(str(boundingRect_df["p2"][j])))
 
         areaxmls.append(
-            lxml.etree.tostring(
-                the_doc, pretty_print=True, encoding='unicode'))
+            lxml.etree.tostring(the_doc, pretty_print=True, encoding="unicode")
+        )
 
-    f = open(filename, 'w')
+    f = open(filename, "w")
     for i in range(len(areaxmls)):
         f.write(areaxmls[i])  # python will convert \n to os.linesep
     f.close()
-
-

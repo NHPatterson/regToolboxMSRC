@@ -30,8 +30,8 @@
 
 // The following components should usually be left as they are:
 (Registration "MultiResolutionRegistration")
-(Interpolator "BSplineInterpolator")
-(ResampleInterpolator "FinalBSplineInterpolator")
+(Interpolator "LinearInterpolator")
+(ResampleInterpolator "FinalLinearInterpolator")
 (Resampler "DefaultResampler")
 
 // These may be changed to Fixed/MovingSmoothingImagePyramid.
@@ -44,9 +44,9 @@
 // quite ok in general. The Transform and Metric are important
 // and need to be chosen careful for each application. See manual.
 (Optimizer "AdaptiveStochasticGradientDescent")
-//(Metric "AdvancedMattesMutualInformation")
-(Transform "AffineTransform")
-(Metric "AdvancedMeanSquares")
+(Metric "AdvancedMattesMutualInformation")
+(Transform "EulerTransform")
+//(Metric "AdvancedMeanSquares")
 (UseNormalization "true")
 
 // ***************** Transformation **************************
@@ -71,7 +71,7 @@
 // for the mutual information. 16 or 32 usually works fine.
 // You could also employ a hierarchical strategy:
 //(NumberOfHistogramBins 16 32 64)
-(NumberOfHistogramBins 64)
+(NumberOfHistogramBins 16)
 
 // If you use a mask, this option is important.
 // If the mask serves as region of interest, set it to false.
@@ -103,14 +103,14 @@
 // Maximum number of iterations in each resolution level:
 // 200-500 works usually fine for affine registration.
 // For more robustness, you may increase this to 1000-2000.
-(MaximumNumberOfIterations 100)
+(MaximumNumberOfIterations 200)
 
 //(AutomaticTransformInitialization "true")
 // The step size of the optimizer, in mm. By default the voxel size is used.
 // which usually works well. In case of unusual high-resolution images
 // (eg histology) it is necessary to increase this value a bit, to the size
 // of the "smallest visible structure" in the image:
-//(MaximumStepLength 1.0)
+(MaximumStepLength 100 50 20 10)
 
 // **************** Image sampling **********************
 
@@ -133,7 +133,7 @@
 // It may improve accuracy if you set this to 3. Never use 0.
 // An order of 1 gives linear interpolation. This is in most
 // applications a good choice.
-(BSplineInterpolationOrder 3)
+(BSplineInterpolationOrder 1)
 
 // Order of B-Spline interpolation used for applying the final
 // deformation.
@@ -141,7 +141,7 @@
 // 1 gives worse accuracy (linear interpolation)
 // 0 gives worst accuracy, but is appropriate for binary images
 // (masks, segmentations); equivalent to nearest neighbor interpolation.
-(FinalBSplineInterpolationOrder 0)
+(FinalBSplineInterpolationOrder 1)
 
 //Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)

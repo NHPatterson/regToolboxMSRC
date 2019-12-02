@@ -7,26 +7,34 @@
 import os
 import time
 import datetime
-from regToolboxMSRC.utils.reg_utils import register_elx_n, transform_mc_image_sitk, paste_to_original_dim, check_im_size_fiji, reg_image_preprocess, parameter_load
+from regToolboxMSRC.utils.reg_utils import (
+    register_elx_n,
+    transform_mc_image_sitk,
+    reg_image_preprocess,
+    parameter_load,
+    load_yaml,
+)
 import SimpleITK as sitk
 
 
-def register_SSS(source_fp,
-                 source_res,
-                 target_fp,
-                 target_res,
-                 source_mask_fp,
-                 target_mask_fp,
-                 wd,
-                 source_img_type,
-                 target_img_type,
-                 reg_model,
-                 project_name,
-                 intermediate_output=False,
-                 bounding_box_source=True,
-                 bounding_box_target=True,
-                 pass_in_project_name=False,
-                 pass_in=None):
+def register_SSS(
+    source_fp,
+    source_res,
+    target_fp,
+    target_res,
+    source_mask_fp,
+    target_mask_fp,
+    wd,
+    source_img_type,
+    target_img_type,
+    reg_model,
+    project_name,
+    intermediate_output=False,
+    bounding_box_source=True,
+    bounding_box_target=True,
+    pass_in_project_name=False,
+    pass_in=None,
+):
     """This function performs linear registration between 2 images from
     the same tissue section.
 
@@ -87,10 +95,9 @@ def register_SSS(source_fp,
         working directory.
     """
 
-    #set up output information
-    if pass_in_project_name == False:
-        ts = datetime.datetime.fromtimestamp(
-            time.time()).strftime('%Y%m%d_%H_%M_%S_')
+    # set up output information
+    if pass_in_project_name is False:
+        ts = datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d_%H_%M_%S_")
         os.chdir(wd)
         os.makedirs(os.path.join(os.getcwd(), ts + project_name + "_images"))
         opdir = ts + project_name + "_images"
@@ -101,18 +108,19 @@ def register_SSS(source_fp,
         os.makedirs(os.path.join(os.getcwd(), pass_in + "_images"))
         opdir = pass_in + "_images"
 
-    #load registration parameters based on input
+    # load registration parameters based on input
     reg_param1 = parameter_load(reg_model)
-    print('Running SSS Registration...')
-    print(project_name + ': registration hyperparameters loaded')
+    print("Running SSS Registration...")
+    print(project_name + ": registration hyperparameters loaded")
 
-    #load images for registration:
+    # load images for registration:
     source = reg_image_preprocess(
         source_fp,
         source_res,
         img_type=source_img_type,
         mask_fp=source_mask_fp,
-        bounding_box=bounding_box_source)
+        bounding_box=bounding_box_source,
+    )
 
     print(project_name + ": source image loaded")
 
@@ -121,11 +129,12 @@ def register_SSS(source_fp,
         target_res,
         img_type=target_img_type,
         mask_fp=target_mask_fp,
-        bounding_box=bounding_box_target)
+        bounding_box=bounding_box_target,
+    )
 
     print(project_name + ": target 1 image loaded")
 
-    #registration initial
+    # registration initial
     src_tgt_tform_init = register_elx_n(
         source,
         target,
@@ -133,46 +142,58 @@ def register_SSS(source_fp,
         output_dir=pass_in + "_tforms_src_tgt",
         output_fn=pass_in + "_init_src_tgt.txt",
         return_image=False,
-        intermediate_transform=False)
+        intermediate_transform=False,
+    )
 
-    #transform intermediate result and save output
+    # transform intermediate result and save output
     os.chdir(wd)
 
-    ##source to target
+    # source to target
     tformed_im = transform_mc_image_sitk(
-        source_fp, src_tgt_tform_init, source_res, override_tform=False)
+        source_fp, src_tgt_tform_init, source_res, override_tform=False
+    )
 
-    if check_im_size_fiji(tformed_im) == True:
-        sitk.WriteImage(tformed_im,
-                        os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt.mha"), True)
-    else:
-        sitk.WriteImage(tformed_im,
-                        os.path.join(os.getcwd(), opdir,
-                                     project_name + "_src_tgt.tif"), True)
+    sitk.WriteImage(
+        tformed_im,
+        os.path.join(os.getcwd(), opdir, project_name + "_src_tgt.tif"),
+        True,
+    )
 
     return
 
 
-if __name__ == '__main__':
-    import yaml
+if __name__ == "__main__":
     import sys
-    with open(sys.argv[1]) as f:
-        # use safe_load instead load
-        dataMap = yaml.safe_load(f)
 
-    register_SSS(
-        dataMap['source_fp'],
-        dataMap['source_res'],
-        dataMap['target_fp'],
-        dataMap['target_res'],
-        dataMap['source_mask_fp'],
-        dataMap['target_mask_fp'],
-        dataMap['wd'],
-        dataMap['source_img_type'],
-        dataMap['target_img_type'],
-        dataMap['reg_model1'],
-        dataMap['project_name'],
-        intermediate_output=False,
-        bounding_box_source=dataMap['bounding_box_source'],
-        bounding_box_target=dataMap['bounding_box_target'])
+    dataMap = load_yaml(sys.argv[1])
+    print(dataMap)
+    dataMapLens = [len(item) for item in dataMap.values()]
+
+    for dataset in range(0, max(dataMapLens)):
+
+        dataMapRun = dict()
+
+        for key, value in dataMap.items():
+            if len(dataMap[key]) > 1:
+                dataMapRun[key] = dataMap[key][dataset]
+            else:
+                dataMapRun[key] = dataMap[key][0]
+
+        print(dataMapRun)
+
+        register_SSS(
+            dataMapRun["source_fp"],
+            dataMapRun["source_res"],
+            dataMapRun["target_fp"],
+            dataMapRun["target_res"],
+            dataMapRun["source_mask_fp"],
+            dataMapRun["target_mask_fp"],
+            dataMapRun["wd"],
+            dataMapRun["source_img_type"],
+            dataMapRun["target_img_type"],
+            dataMapRun["reg_model1"],
+            dataMapRun["project_name"],
+            intermediate_output=dataMapRun["intermediate_output"],
+            bounding_box_source=dataMapRun["bounding_box_source"],
+            bounding_box_target=dataMapRun["bounding_box_target"],
+        )

@@ -1,0 +1,20 @@
+source_fp:
+  - C:/regtlbx/dev_branch/testdata/sec01.jpg
+  - C:/regtlbx/dev_branch/testdata/sec01.jpg
+source_res:
+  - 1
+  - 2
+target_fp: C:/regtlbx/dev_branch/testdata/sec02.jpg
+target_res: 1
+source_mask_fp: None
+target_mask_fp: None
+wd: E:/regtlbxtest
+source_img_type: AF
+target_img_type: AF
+reg_model1: rigid
+project_name:
+  - sss_test1
+  - sss_test2
+bounding_box_source: False
+bounding_box_target: False
+intermediate_output: False

@@ -5,20 +5,35 @@
 """
 
 import os
-import time
-import datetime
 from regToolboxMSRC.utils.reg_utils import (
     register_elx_n,
     transform_mc_image_sitk,
+    check_im_size_fiji,
     reg_image_preprocess,
     parameter_load,
 )
 import SimpleITK as sitk
 
 
+def rotateIm(im_fp, res=1, no_rot=1):
+    im = reg_image_preprocess(
+        im_fp, 1.0, img_type="RGB_l", mask_fp=None, bounding_box=True
+    )
+    print(im.image.GetPixelIDTypeAsString())
+    im = sitk.GetArrayFromImage(im.image)
+    im = rotate(im, -1 * no_rot * 90, resize=True, preserve_range=True)
+    im = im.astype(np.uint8)
+    im = sitk.GetImageFromArray(im)
+    im.SetSpacing((res, res))
+
+    return im
+
+
 def register_MSS(
     source_fp,
     source_res,
+    source_pts,
+    source_rot,
     target_fp,
     target_res,
     source_mask_fp,
@@ -31,8 +46,6 @@ def register_MSS(
     intermediate_output=False,
     bounding_box_source=True,
     bounding_box_target=True,
-    pass_in_project_name=False,
-    pass_in=None,
 ):
     """This function performs linear then non-linear registration between 2
     images from serial tissue sections.
@@ -94,17 +107,11 @@ def register_MSS(
         working directory.
     """
     # set up output information
-    if pass_in_project_name is False:
-        ts = datetime.datetime.fromtimestamp(time.time()).strftime("%Y%m%d_%H_%M_%S_")
-        os.chdir(wd)
-        os.makedirs(os.path.join(os.getcwd(), ts + project_name + "_images"))
-        opdir = ts + project_name + "_images"
-        pass_in = ts + project_name
 
-    else:
-        os.chdir(wd)
-        os.makedirs(os.path.join(os.getcwd(), pass_in + "_images"))
-        opdir = pass_in + "_images"
+    os.chdir(wd)
+    os.makedirs(os.path.join(os.getcwd(), project_name + "_images"))
+    image_dir = project_name + "_images"
+    project_dir = project_name
 
     # load registration parameters based on input
     reg_param1 = parameter_load(reg_model)
@@ -118,6 +125,13 @@ def register_MSS(
         img_type=source_img_type,
         mask_fp=source_mask_fp,
         bounding_box=bounding_box_source,
+    )
+
+    if source_rot > 0:
+        source.image = rotateIm(source.image, res=source_res, no_rot=source_rot)
+
+    source = reg_image_preprocess(
+        source.image, source_res, img_type="from_file", mask_fp=None, bounding_box=False
     )
 
     print(project_name + ": source image loaded")
@@ -137,10 +151,26 @@ def register_MSS(
         source,
         target,
         reg_param1,
-        output_dir=pass_in + "_tforms_src_tgt_init",
-        output_fn=pass_in + "_init_src_tgt_init.txt",
+        output_dir=project_dir + "_tforms_src_tgt_init",
+        output_fn=project_dir + "_init_src_tgt_init.txt",
         return_image=True,
         intermediate_transform=True,
+    )
+
+    output_dir = os.path.join(os.getcwd(), project_dir)
+    output_fn = os.path.splitext(project_dir + "_init_src_tgt_init.txt")[0]
+    output_fn = output_fn + "_inv.txt"
+
+    tmap_init_inv, inv_im = register_elx_n_inv(
+        target,
+        source,
+        src_tgt_tform_init,
+        reg_param1,
+        output_dir=output_dir,
+        output_fn=output_fn,
+        return_image=True,
+        intermediate_transform=False,
+        logging=True,
     )
 
     # transform intermediate result and save output
@@ -153,7 +183,7 @@ def register_MSS(
 
         sitk.WriteImage(
             tformed_im,
-            os.path.join(os.getcwd(), opdir, project_name + "_src_tgt_init.tif"),
+            os.path.join(os.getcwd(), image_dir, project_name + "_src_tgt_init.tif"),
             True,
         )
 
@@ -179,29 +209,50 @@ def register_MSS(
         source,
         target,
         reg_param_nl,
-        output_dir=pass_in + "_tforms_src_tgt_nl",
-        output_fn=pass_in + "init_src_tgt_nl.txt",
+        output_dir=project_dir + "_tforms_src_tgt_nl",
+        output_fn=project_dir + "init_src_tgt_nl.txt",
         return_image=False,
         logging=True,
         intermediate_transform=False,
     )
 
+    output_dir = os.path.join(os.getcwd(), project_dir)
+    output_fn = os.path.splitext(project_dir + "init_src_tgt_nl.txt")[0]
+    output_fn = output_fn + "_inv.txt"
+
+    target = reg_image_preprocess(
+        inv_im, target_res, img_type="in_memory", mask_fp=None, bounding_box=True
+    )
+
+    tmap_nl_inv = register_elx_n_inv(
+        target,
+        target,
+        src_tgt_tform_nl,
+        reg_param_nl,
+        output_dir=output_dir,
+        output_fn=output_fn,
+        return_image=False,
+        intermediate_transform=False,
+        logging=True,
+    )
+
     # source to tgt2
+
+    source_im = rotateIm(sitk.ReadImage(source_fp), res=source_res, no_rot=source_rot)
+
     tformed_im = transform_mc_image_sitk(
-        source_fp, src_tgt_tform_init, source_res, override_tform=False
+        source_fp, src_tgt_tform_init, source_res, override_tform=False, from_file=False
     )
 
     tformed_im = transform_mc_image_sitk(
         tformed_im, src_tgt_tform_nl, source_res, from_file=False, override_tform=False
     )
 
-    sitk.WriteImage(
-        tformed_im,
-        os.path.join(os.getcwd(), opdir, project_name + "_src_tgt_nl.tif"),
-        True,
-    )
+    nl_im_fp = os.path.join(os.getcwd(), image_dir, project_name + "_src_tgt_nl.tif")
 
-    return
+    sitk.WriteImage(tformed_im, nl_im_fp, True)
+
+    return nl_im_fp
 
 
 if __name__ == "__main__":
