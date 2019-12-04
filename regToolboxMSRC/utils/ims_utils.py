@@ -210,15 +210,15 @@ class ImsPixelMaps(object):
 
         if self.IMS_data_type == ".csv" or self.IMS_data_type == ".txt":
             self.spots = parse_bruker_spotlist(self.filepath)
-            # self.spots = self.spotToPandas()
+            self.spotToPandas()
 
         if self.IMS_data_type.lower() == ".imzml":
             self.spots = imzml_coord_parser(self.filepath)
-            self.spots = self.spotToPandas()
+            self.spotToPandas()
 
         if self.IMS_data_type == ".sqlite":
             self.spots = parse_sqlite_coordinates(self.filepath)
-            self.spots = self.spotToPandas()
+            self.spotToPandas()
 
         if self.IMS_data_type == ".npy":
             self.spots = np.load(self.filepath)
@@ -247,6 +247,7 @@ class ImsPixelMaps(object):
             (max(self.spots["y_minimized"]), max(self.spots["x_minimized"])),
             dtype=np.uint8,
         )
+
         IMS_mask[
             np.array(self.spots["y_minimized"]) - 1,
             np.array(self.spots["x_minimized"]) - 1,
@@ -685,9 +686,15 @@ class PointSetElx:
             for x in range(xmin, xmax):
                 for y in range(ymin, ymax):
                     if binary is False:
-                        mask_template[x, y] = index + 1
+                        try:
+                            mask_template[x, y] = index + 1
+                        except IndexError:
+                            continue
                     else:
-                        mask_template[x, y] = 255
+                        try:
+                            mask_template[x, y] = 255
+                        except IndexError:
+                            continue
 
         self.ptset_mask = mask_template
         self.ptset_mask.SetSpacing((spacing, spacing))
