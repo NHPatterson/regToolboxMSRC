@@ -2,11 +2,15 @@
 """
 @author: pattenh1
 """
-
+import warnings
+import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import cv2
 import os
 import SimpleITK as sitk
+from czifile import CziFile
+from tifffile import create_output
 import time
 import datetime
 import xml.etree.ElementTree as ET
@@ -21,7 +25,16 @@ class RegImage(object):
 
     """
 
-    def __init__(self, filepath, im_format, img_res=1, load_image=True):
+    def __init__(
+        self,
+        filepath,
+        im_format,
+        img_res=1,
+        load_image=True,
+        ds_factor=1,
+        channel_idx=None,
+        byte_ds=False,
+    ):
         """
         Container class for image meta data and processing between ITK and cv2
             :param filepath: filepath to the image
@@ -46,7 +59,7 @@ class RegImage(object):
                 except ImportError:
                     print("czifile library not found")
                 else:
-                    czi = czifile.CziFile(self.filepath)
+                    czi = sub_czi(self.filepath)
 
                     if czi.shape[1] > 1:
                         raise ValueError(
@@ -56,7 +69,9 @@ class RegImage(object):
                         )
 
                     print("importing czi file...")
-                    self.image = czifile.imread(self.filepath)
+                    self.image = czi.sub_asarray(
+                        ds_factor=ds_factor, channel_idx=channel_idx, byte_ds=byte_ds
+                    )
                     self.image = np.squeeze(self.image)
                     self.image = sitk.GetImageFromArray(self.image)
                     self.image = self.set_img_type(self.image, self.im_format)
@@ -1201,17 +1216,148 @@ def parameterFile_load(parameterFile):
         print("parameter input is not valid")
 
 
+class sub_czi(CziFile):
+    def sub_asarray(
+        self,
+        resize=True,
+        order=0,
+        out=None,
+        max_workers=None,
+        ds_factor=1,
+        channel_idx=None,
+        byte_ds=False,
+    ):
+
+        """Return image data from file(s) as numpy array.
+
+        Parameters
+        ----------
+        resize : bool
+            If True (default), resize sub/supersampled subblock data.
+        order : int
+            The order of spline interpolation used to resize sub/supersampled
+            subblock data. Default is 0 (nearest neighbor).
+        out : numpy.ndarray, str, or file-like object; optional
+            Buffer where image data will be saved.
+            If numpy.ndarray, a writable array of compatible dtype and shape.
+            If str or open file, the file name or file object used to
+            create a memory-map to an array stored in a binary file on disk.
+        max_workers : int
+            Maximum number of threads to read and decode subblock data.
+            By default up to half the CPU cores are used.
+
+        """
+
+        out_shape = list(self.shape)
+        start = list(self.start)
+
+        if channel_idx is not None:
+            out_shape[2] = 1
+
+        if ds_factor > 1:
+            out_shape[3] = out_shape[3] // ds_factor
+            out_shape[4] = out_shape[4] // ds_factor
+            out_shape = tuple(out_shape)
+            start[3] = start[3] // ds_factor
+            start[4] = start[4] // ds_factor
+
+        if byte_ds is True:
+            out_dtype = np.uint8
+        else:
+            out_dtype = self.dtype
+
+        out = create_output(out, tuple(out_shape), out_dtype)
+
+        if max_workers is None:
+            max_workers = multiprocessing.cpu_count()
+
+        def func(directory_entry, resize=resize, order=order, start=start, out=out):
+            """Read, decode, and copy subblock data."""
+            subblock = directory_entry.data_segment()
+            dvstart = list(directory_entry.start)
+
+            if channel_idx is not None:
+                if subblock.dimension_entries[3].start == channel_idx:
+                    tile = subblock.data(resize=resize, order=order)
+                    dvstart[2] = 0
+            else:
+                tile = subblock.data(resize=resize, order=order)
+
+            if ds_factor > 1:
+                tile = np.squeeze(tile)
+
+                w = tile.shape[0] // ds_factor
+                h = tile.shape[0] // ds_factor
+                tile_ds = cv2.resize(
+                    np.squeeze(tile), dsize=(w, h), interpolation=cv2.INTER_LINEAR
+                )
+
+                tile_ds = np.reshape(
+                    tile_ds, (1, 1, 1, tile_ds.shape[0], tile_ds.shape[1], 1)
+                )
+                tile = tile_ds
+
+                dvstart[3] = dvstart[3] // ds_factor
+                dvstart[4] = dvstart[4] // ds_factor
+
+            if byte_ds is True:
+                tile = (tile / 256).astype("uint8")
+
+            index = tuple(
+                slice(i - j, i - j + k)
+                for i, j, k in zip(tuple(dvstart), tuple(start), tile.shape)
+            )
+
+            try:
+                out[index] = tile
+            except ValueError as e:
+                warnings.warn(str(e))
+
+        if max_workers > 1:
+            self._fh.lock = True
+            with ThreadPoolExecutor(max_workers) as executor:
+                executor.map(func, self.filtered_subblock_directory)
+            self._fh.lock = None
+        else:
+            for directory_entry in self.filtered_subblock_directory:
+                func(directory_entry)
+
+        if hasattr(out, "flush"):
+            out.flush()
+        return out
+
+
+def is_czi(image_fp):
+    return os.path.splitext(image_fp)[1].lower() == ".czi"
+
+
 def reg_image_preprocess(
-    image_fp, img_res, img_type="RGB_l", mask_fp=None, bounding_box=False
+    image_fp,
+    img_res,
+    img_type="RGB_l",
+    mask_fp=None,
+    bounding_box=False,
+    ds_factor=1,
+    channel_idx=None,
+    byte_ds=False,
 ):
+
+    is_czi_im = is_czi(image_fp)
 
     if img_type in ["RGB_l", "AF", "in_memory", "none", 1, 2, 3, 4, 5, 6, None]:
         if img_type == "RGB_l":
             out_image = RegImage(image_fp, "sitk", img_res)
             out_image.to_greyscale()
             out_image.invert_intensity()
+
         elif img_type == "AF":
-            out_image = RegImage(image_fp, "sitk", img_res)
+            if is_czi_im:
+                out_image = RegImage(
+                    image_fp, "sitk", img_res, ds_factor=ds_factor, byte_ds=True
+                )
+            else:
+                out_image = RegImage(image_fp, "sitk", img_res)
+
             if out_image.image.GetDepth() > 1:
                 out_image.compress_AF_channels("max")
             if out_image.image.GetNumberOfComponentsPerPixel() >= 3:
@@ -1221,14 +1367,24 @@ def reg_image_preprocess(
             out_image.get_image_from_memory(image_fp)
 
         elif img_type in [1, 2, 3, 4, 5, 6, 7]:
-            out_image = RegImage(image_fp, "sitk", img_res)
-            if out_image.image.GetDepth() >= int(img_type) - 1:
-                out_image.image = out_image.image[:, :, int(img_type) - 1]
+            if is_czi_im:
+                out_image = RegImage(
+                    image_fp,
+                    "sitk",
+                    img_res,
+                    ds_factor=ds_factor,
+                    channel_idx=int(img_type) - 1,
+                    byte_ds=True,
+                )
             else:
-                if out_image.image.GetDepth() > 1:
-                    out_image.compress_AF_channels("max")
-                if out_image.image.GetNumberOfComponentsPerPixel() >= 3:
-                    out_image.to_greyscale()
+                out_image = RegImage(image_fp, "sitk", img_res)
+                if out_image.image.GetDepth() >= int(img_type) - 1:
+                    out_image.image = out_image.image[:, :, int(img_type) - 1]
+                else:
+                    if out_image.image.GetDepth() > 1:
+                        out_image.compress_AF_channels("max")
+                    if out_image.image.GetNumberOfComponentsPerPixel() >= 3:
+                        out_image.to_greyscale()
 
         else:
             out_image = RegImage(image_fp, "sitk", img_res)
